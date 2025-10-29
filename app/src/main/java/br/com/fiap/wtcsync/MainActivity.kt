@@ -7,7 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import br.com.fiap.wtcsync.theme.WTCSYNCTheme
-import com.example.seuprojeto.navigation.Navigation
+import br.com.fiap.wtcsync.ui.Navigation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

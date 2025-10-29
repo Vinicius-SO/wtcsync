@@ -1,4 +1,4 @@
-package com.example.seuprojeto.ui.chat
+package br.com.fiap.wtcsync.ui.chat
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

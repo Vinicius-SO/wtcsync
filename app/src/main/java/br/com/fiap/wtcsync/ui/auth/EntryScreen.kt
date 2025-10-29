@@ -31,6 +31,7 @@ fun EntryScreen(
     val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory())
     val userState by viewModel.userState.collectAsState()
     var successfulUser by remember { mutableStateOf<User?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -42,7 +43,7 @@ fun EntryScreen(
                 val idToken = account.idToken!!
                 viewModel.loginWithGoogle(idToken)
             } catch (e: ApiException) {
-                Toast.makeText(context, "Google Sign-in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                errorMessage = "Google Sign-in failed: ${e.message}"
             }
         }
     }
@@ -107,7 +108,7 @@ fun EntryScreen(
                 successfulUser = state.data
             }
             is Resource.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                errorMessage = state.message
             }
             else -> {}
         }
@@ -125,6 +126,19 @@ fun EntryScreen(
                         successfulUser = null
                     }
                 ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (errorMessage != null) {
+        AlertDialog(
+            onDismissRequest = { errorMessage = null },
+            title = { Text("Erro de Login") },
+            text = { Text(errorMessage ?: "Ocorreu um erro inesperado") },
+            confirmButton = {
+                Button(onClick = { errorMessage = null }) {
                     Text("OK")
                 }
             }

@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.material3.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,4 +69,7 @@ dependencies {
 
 // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    implementation("androidx.compose.material:material:1.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
 }

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "701263696051",
+    "project_id": "wtcsync",
+    "storage_bucket": "wtcsync.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701263696051:android:5ddd5c0cb40605811820c6",
+        "android_client_info": {
+          "package_name": "br.com.fiap.wtcsync"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701263696051-ufifaucra7d25529p6t7f0q5h5rj0ha3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFo8z6Jrm-fVWH_lAWbjM7sE0qzW2gYzo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701263696051-ufifaucra7d25529p6t7f0q5h5rj0ha3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

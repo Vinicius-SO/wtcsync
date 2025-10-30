@@ -9,7 +9,7 @@ Este projeto foi construído utilizando o stack mais recente do Android:
 * **Linguagem:** Kotlin
 * **UI Toolkit:** Jetpack Compose (Interface Declarativa)
 * **Arquitetura:** MVVM (Model-View-ViewModel)
-* **Gestão de Estado:** ViewModel / LiveData (ou StateFlow/Flow, dependendo da sua escolha)
+* **Gestão de Estado:** ViewModel 
 * **Dados/Backend:** Firebase (como fonte de dados remota)
 
 ## 🏗️ Estrutura de Pastas (Clean/Modular)

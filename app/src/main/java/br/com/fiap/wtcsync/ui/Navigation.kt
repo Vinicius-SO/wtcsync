@@ -39,9 +39,11 @@ fun Navigation(navController: NavHostController) {
         }
         composable("register") {
             RegisterScreen(
-                onRegisterSuccess = {
-                    navController.navigate("chatlist") {
-                        popUpTo("entry") { inclusive = true }
+                onRegisterSuccess = { email -> // O parâmetro 'email' é opcional, mas está lá.
+                    // 🚨 Ajuste aqui: Navegar para a tela de login
+                    navController.navigate("login") {
+                        // O popUpTo garante que a tela de registro seja removida da pilha.
+                        popUpTo("register") { inclusive = true }
                     }
                 },
                 onBackClick = { navController.popBackStack() }

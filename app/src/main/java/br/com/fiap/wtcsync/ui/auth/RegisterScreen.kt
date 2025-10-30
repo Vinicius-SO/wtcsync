@@ -24,10 +24,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lint.kotlin.metadata.Visibility
 import br.com.fiap.wtcsync.R
 import br.com.fiap.wtcsync.data.model.enums.UserRole
 import br.com.fiap.wtcsync.util.Resource
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,11 +49,29 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    // Observa mudanças no estado e reage adequadamente
+    LaunchedEffect(userState) {
+        when (val state = userState) {
+            is Resource.Success -> {
+                Toast.makeText(context, "Registro bem-sucedido!", Toast.LENGTH_SHORT).show()
+                viewModel.resetState() // Reseta o estado após sucesso
+                // 🚨 A navegação deve ser configurada aqui no NavHost
+                onRegisterSuccess(state.data?.email ?: "")
+            }
+            is Resource.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetState() // Reseta o estado após erro
+            }
+            else -> {}
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
+        // --- CONTEÚDO DA TELA ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,7 +82,8 @@ fun RegisterScreen(
             // Botão voltar
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                enabled = userState !is Resource.Loading // Desabilita durante loading
             ) {
                 Icon(
                     Icons.Default.ArrowBack,
@@ -105,6 +124,7 @@ fun RegisterScreen(
                 onValueChange = { name = it },
                 placeholder = { Text("João Silva", color = Color.LightGray) },
                 singleLine = true,
+                enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.LightGray,
@@ -126,12 +146,17 @@ fun RegisterScreen(
             )
             ExposedDropdownMenuBox(
                 expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                onExpandedChange = {
+                    if (userState !is Resource.Loading) {
+                        expanded = !expanded
+                    }
+                }
             ) {
                 OutlinedTextField(
                     value = if (role == UserRole.CLIENTE) "Cliente" else "Atendente",
                     onValueChange = {},
                     readOnly = true,
+                    enabled = userState !is Resource.Loading,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -180,6 +205,7 @@ fun RegisterScreen(
                 onValueChange = { email = it },
                 placeholder = { Text("JoeDoe@WTC.com", color = Color.LightGray) },
                 singleLine = true,
+                enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.LightGray,
@@ -204,6 +230,7 @@ fun RegisterScreen(
                 onValueChange = { password = it },
                 placeholder = { Text("••••••••••", color = Color.LightGray) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                enabled = userState !is Resource.Loading,
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
@@ -237,10 +264,11 @@ fun RegisterScreen(
                 onValueChange = { confirmPassword = it },
                 placeholder = { Text("••••••••••", color = Color.LightGray) },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                enabled = userState !is Resource.Loading,
                 trailingIcon = {
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                         Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle password visibility"
                         )
                     }
@@ -258,15 +286,31 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botão Conectar
+            // Botão Conectar (o Spinner foi removido daqui)
             Button(
                 onClick = {
-                    if (password == confirmPassword) {
-                        viewModel.register(email, password, name, role)
-                    } else {
-                        Toast.makeText(context, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
+                    when {
+                        name.isBlank() -> {
+                            Toast.makeText(context, "Por favor, insira seu nome", Toast.LENGTH_SHORT).show()
+                        }
+                        email.isBlank() -> {
+                            Toast.makeText(context, "Por favor, insira seu email", Toast.LENGTH_SHORT).show()
+                        }
+                        password.isBlank() -> {
+                            Toast.makeText(context, "Por favor, insira sua senha", Toast.LENGTH_SHORT).show()
+                        }
+                        password.length < 6 -> {
+                            Toast.makeText(context, "A senha deve ter pelo menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                        }
+                        password != confirmPassword -> {
+                            Toast.makeText(context, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            viewModel.register(email, password, name, role)
+                        }
                     }
                 },
+                enabled = userState !is Resource.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -275,36 +319,35 @@ fun RegisterScreen(
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
+                // Texto do botão muda durante o loading
+                val buttonText = if (userState is Resource.Loading) "Registrando..." else "Conectar"
+
                 Text(
-                    text = "Conectar",
+                    text = buttonText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }
 
-            if (userState is Resource.Loading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    color = Color(0xFFFFC107)
-                )
-            }
-
             // Espaço extra no final para melhor UX
             Spacer(modifier = Modifier.height(24.dp))
+        }
 
-            LaunchedEffect(userState) {
-                when (val state = userState) {
-                    is Resource.Success -> {
-                        Toast.makeText(context, "Registro bem-sucedido!", Toast.LENGTH_SHORT).show()
-                        onRegisterSuccess(state.data?.email ?: "")
-                    }
-                    is Resource.Error -> {
-                        Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    }
-                    else -> {}
-                }
+        // --- OVERLAY DE LOADING (SPINNER NO CENTRO) ---
+        if (userState is Resource.Loading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // Fundo semitransparente para bloquear a interação
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                // O Spinner no centro da tela
+                CircularProgressIndicator(
+                    color = Color.White,
+                    strokeWidth = 4.dp
+                )
             }
         }
     }

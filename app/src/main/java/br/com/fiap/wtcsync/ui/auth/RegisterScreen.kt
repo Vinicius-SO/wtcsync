@@ -32,7 +32,7 @@ import br.com.fiap.wtcsync.util.Resource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory()),
+    viewModel: AuthViewModel,
     onRegisterSuccess: (String) -> Unit = {},
     onBackClick: () -> Unit
 ) {

@@ -46,7 +46,8 @@ fun EntryScreen(
     onLoginSuccess: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory())
+    val app = context.applicationContext as android.app.Application
+    val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(app))
     val userState by viewModel.userState.collectAsState()
 
     val googleSignInLauncher = rememberLauncherForActivityResult(

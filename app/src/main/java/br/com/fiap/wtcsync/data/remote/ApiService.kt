@@ -57,4 +57,12 @@ class ApiService(private val sessionManager: SessionManager) {
     val authApi: AuthApi by lazy {
         retrofit.create(AuthApi::class.java)
     }
+
+    val clientApi: ClientApi by lazy {
+        retrofit.create(ClientApi::class.java)
+    }
+
+    val messageApi: MessageApi by lazy {
+        retrofit.create(MessageApi::class.java)
+    }
 }

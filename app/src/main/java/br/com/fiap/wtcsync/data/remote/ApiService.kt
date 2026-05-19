@@ -2,6 +2,7 @@ package br.com.fiap.wtcsync.data.remote
 
 import br.com.fiap.wtcsync.campaigns.data.CampaignApi
 import br.com.fiap.wtcsync.data.local.SessionManager
+import br.com.fiap.wtcsync.segments.data.dto.SegmentApi
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -56,5 +57,17 @@ class ApiService(private val sessionManager: SessionManager) {
 
     val authApi: AuthApi by lazy {
         retrofit.create(AuthApi::class.java)
+    }
+
+    val clientApi: ClientApi by lazy {
+        retrofit.create(ClientApi::class.java)
+    }
+
+    val messageApi: MessageApi by lazy {
+        retrofit.create(MessageApi::class.java)
+    }
+
+    val segmentApi: SegmentApi by lazy {
+        retrofit.create(SegmentApi::class.java)
     }
 }

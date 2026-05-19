@@ -1,6 +1,7 @@
 package br.com.fiap.wtcsync.ui
 
 import android.app.Application
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -27,6 +28,9 @@ import br.com.fiap.wtcsync.campaigns.ui.detail.CampaignDetailViewModelFactory
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListScreen
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModel
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModelFactory
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentScreen
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentViewModel
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentViewModelFactory
 import br.com.fiap.wtcsync.ui.auth.AuthViewModel
 import br.com.fiap.wtcsync.ui.auth.AuthViewModelFactory
 import br.com.fiap.wtcsync.ui.auth.EntryScreen
@@ -35,6 +39,7 @@ import br.com.fiap.wtcsync.ui.auth.RegisterScreen
 import br.com.fiap.wtcsync.ui.components.BottomNavBar
 import br.com.fiap.wtcsync.ui.components.BottomNavTab
 import br.com.fiap.wtcsync.ui.crm.ChatListScreen
+import br.com.fiap.wtcsync.ui.crm.ClientFormScreen
 import br.com.fiap.wtcsync.ui.crm.ClientesScreen
 import br.com.fiap.wtcsync.ui.crm.SegmentosScreen
 import br.com.fiap.wtcsync.ui.messages.MessageScreen
@@ -90,11 +95,16 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable(
-            route = "message_screen/{contactName}",
-            arguments = listOf(navArgument("contactName") { type = NavType.StringType })
+            route = "message_screen/{clienteId}/{contactName}",
+            arguments = listOf(
+                navArgument("clienteId") { type = NavType.StringType },
+                navArgument("contactName") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
+            val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
             val contactName = backStackEntry.arguments?.getString("contactName") ?: "Contato"
             MessageScreen(
+                clienteId = clienteId,
                 contactName = contactName,
                 navController = navController
             )
@@ -105,12 +115,8 @@ fun Navigation(navController: NavHostController) {
             )
             CampaignListScreen(
                 viewModel = listViewModel,
-                onCampaignClick = { id ->
-                    navController.navigate("campaigns/$id")
-                },
-                onCreateClick = {
-                    navController.navigate("campaigns/create")
-                },
+                onCampaignClick = { id -> navController.navigate("campaigns/$id") },
+                onCreateClick = { navController.navigate("campaigns/create") },
                 userRole = role
             )
         }
@@ -140,6 +146,33 @@ fun Navigation(navController: NavHostController) {
                         popUpTo("campaigns") { inclusive = true }
                     }
                 }
+            )
+        }
+        composable("clientes/novo") {
+            ClientFormScreen(
+                clienteId = null,
+                onSave = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "clientes/{id}/editar",
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStack ->
+            ClientFormScreen(
+                clienteId = backStack.arguments?.getString("id"),
+                onSave = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+        composable("segments/create") {
+            val createViewModel: CreateSegmentViewModel = viewModel(
+                factory = CreateSegmentViewModelFactory(application)
+            )
+            CreateSegmentScreen(
+                viewModel = createViewModel,
+                onBackClick = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
     }
@@ -173,8 +206,13 @@ private fun HomeScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
-                BottomNavTab.CLIENTES -> ClientesScreen()
-                BottomNavTab.SEGMENTOS -> SegmentosScreen()
+                BottomNavTab.CLIENTES -> ClientesScreen(
+                    onCreateClick = { navController.navigate("clientes/novo") },
+                    onClienteClick = { id -> navController.navigate("clientes/$id/editar") }
+                )
+                BottomNavTab.SEGMENTOS -> SegmentosScreen(
+                    onCreateClick = { navController.navigate("segments/create") }
+                )
                 BottomNavTab.CAMPANHAS -> {
                     if (userRole == UserRole.OPERATOR) {
                         val listViewModel: CampaignListViewModel = viewModel(
@@ -195,9 +233,12 @@ private fun HomeScreen(
                     }
                 }
                 BottomNavTab.CHAT -> ChatListScreen(
-                    onChatClick = { cliente ->
-                        navController.navigate("message_screen/${cliente.nome}")
-                    }
+                    onChatClick = { id, name ->
+                        navController.navigate(
+                            "message_screen/${Uri.encode(id)}/${Uri.encode(name)}"
+                        )
+                    },
+                    onCreateClick = { navController.navigate("clientes/novo") }
                 )
             }
         }

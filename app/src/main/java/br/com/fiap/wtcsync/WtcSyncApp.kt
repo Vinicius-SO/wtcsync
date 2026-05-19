@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync
 
+import br.com.fiap.wtcsync.segments.data.dto.SegmentRepository
 import android.app.Application
 import br.com.fiap.wtcsync.campaigns.data.CampaignRepository
 import br.com.fiap.wtcsync.data.firebase.FirestoreDataSource
@@ -13,6 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 
 class WtcSyncApp : Application() {
 
+    lateinit var segmentRepository: SegmentRepository
+        private set
     lateinit var authRepository: AuthRepository
         private set
     lateinit var sessionManager: SessionManager
@@ -41,6 +44,7 @@ class WtcSyncApp : Application() {
         sessionManager = SessionManager(this)
         apiService = ApiService(sessionManager)
         campaignRepository = CampaignRepository(apiService.campaignApi)
+        segmentRepository = SegmentRepository(apiService.segmentApi)
         authRepository = AuthRepository(
             firebaseAuth = firebaseAuth,
             firestoreDataSource = firestoreDataSource,

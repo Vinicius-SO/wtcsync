@@ -28,6 +28,9 @@ import br.com.fiap.wtcsync.campaigns.ui.detail.CampaignDetailViewModelFactory
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListScreen
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModel
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModelFactory
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentScreen
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentViewModel
+import br.com.fiap.wtcsync.segments.ui.create.CreateSegmentViewModelFactory
 import br.com.fiap.wtcsync.ui.auth.AuthViewModel
 import br.com.fiap.wtcsync.ui.auth.AuthViewModelFactory
 import br.com.fiap.wtcsync.ui.auth.EntryScreen
@@ -112,12 +115,8 @@ fun Navigation(navController: NavHostController) {
             )
             CampaignListScreen(
                 viewModel = listViewModel,
-                onCampaignClick = { id ->
-                    navController.navigate("campaigns/$id")
-                },
-                onCreateClick = {
-                    navController.navigate("campaigns/create")
-                },
+                onCampaignClick = { id -> navController.navigate("campaigns/$id") },
+                onCreateClick = { navController.navigate("campaigns/create") },
                 userRole = role
             )
         }
@@ -165,6 +164,16 @@ fun Navigation(navController: NavHostController) {
                 onCancel = { navController.popBackStack() }
             )
         }
+        composable("segments/create") {
+            val createViewModel: CreateSegmentViewModel = viewModel(
+                factory = CreateSegmentViewModelFactory(application)
+            )
+            CreateSegmentScreen(
+                viewModel = createViewModel,
+                onBackClick = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -189,7 +198,9 @@ private fun HomeScreen(
                     onCreateClick = { navController.navigate("clientes/novo") },
                     onClienteClick = { id -> navController.navigate("clientes/$id/editar") }
                 )
-                BottomNavTab.SEGMENTOS -> SegmentosScreen()
+                BottomNavTab.SEGMENTOS -> SegmentosScreen(
+                    onCreateClick = { navController.navigate("segments/create") }
+                )
                 BottomNavTab.CAMPANHAS -> {
                     val listViewModel: CampaignListViewModel = viewModel(
                         factory = CampaignListViewModelFactory(
@@ -198,12 +209,8 @@ private fun HomeScreen(
                     )
                     CampaignListScreen(
                         viewModel = listViewModel,
-                        onCampaignClick = { id ->
-                            navController.navigate("campaigns/$id")
-                        },
-                        onCreateClick = {
-                            navController.navigate("campaigns/create")
-                        },
+                        onCampaignClick = { id -> navController.navigate("campaigns/$id") },
+                        onCreateClick = { navController.navigate("campaigns/create") },
                         userRole = userRole
                     )
                 }

@@ -1,6 +1,7 @@
 package br.com.fiap.wtcsync.ui
 
 import android.app.Application
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -35,6 +36,7 @@ import br.com.fiap.wtcsync.ui.auth.RegisterScreen
 import br.com.fiap.wtcsync.ui.components.BottomNavBar
 import br.com.fiap.wtcsync.ui.components.BottomNavTab
 import br.com.fiap.wtcsync.ui.crm.ChatListScreen
+import br.com.fiap.wtcsync.ui.crm.ClientFormScreen
 import br.com.fiap.wtcsync.ui.crm.ClientesScreen
 import br.com.fiap.wtcsync.ui.crm.SegmentosScreen
 import br.com.fiap.wtcsync.ui.messages.MessageScreen
@@ -90,11 +92,16 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable(
-            route = "message_screen/{contactName}",
-            arguments = listOf(navArgument("contactName") { type = NavType.StringType })
+            route = "message_screen/{clienteId}/{contactName}",
+            arguments = listOf(
+                navArgument("clienteId") { type = NavType.StringType },
+                navArgument("contactName") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
+            val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
             val contactName = backStackEntry.arguments?.getString("contactName") ?: "Contato"
             MessageScreen(
+                clienteId = clienteId,
                 contactName = contactName,
                 navController = navController
             )
@@ -141,6 +148,23 @@ fun Navigation(navController: NavHostController) {
                 }
             )
         }
+        composable("clientes/novo") {
+            ClientFormScreen(
+                clienteId = null,
+                onSave = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "clientes/{id}/editar",
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { backStack ->
+            ClientFormScreen(
+                clienteId = backStack.arguments?.getString("id"),
+                onSave = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -161,7 +185,10 @@ private fun HomeScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selectedTab) {
-                BottomNavTab.CLIENTES -> ClientesScreen()
+                BottomNavTab.CLIENTES -> ClientesScreen(
+                    onCreateClick = { navController.navigate("clientes/novo") },
+                    onClienteClick = { id -> navController.navigate("clientes/$id/editar") }
+                )
                 BottomNavTab.SEGMENTOS -> SegmentosScreen()
                 BottomNavTab.CAMPANHAS -> {
                     val listViewModel: CampaignListViewModel = viewModel(
@@ -181,9 +208,12 @@ private fun HomeScreen(
                     )
                 }
                 BottomNavTab.CHAT -> ChatListScreen(
-                    onChatClick = { cliente ->
-                        navController.navigate("message_screen/${cliente.nome}")
-                    }
+                    onChatClick = { id, name ->
+                        navController.navigate(
+                            "message_screen/${Uri.encode(id)}/${Uri.encode(name)}"
+                        )
+                    },
+                    onCreateClick = { navController.navigate("clientes/novo") }
                 )
             }
         }

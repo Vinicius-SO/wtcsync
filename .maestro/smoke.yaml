@@ -1,0 +1,4 @@
+appId: br.com.fiap.wtcsync
+---
+- launchApp
+- assertVisible: ".*"

@@ -30,7 +30,7 @@ import br.com.fiap.wtcsync.util.Resource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory()),
+    viewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit = {},
     onBackClick: () -> Unit
 ) {

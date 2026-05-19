@@ -124,7 +124,8 @@ fun Navigation(navController: NavHostController) {
             )
             CampaignDetailScreen(
                 viewModel = detailViewModel,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                userRole = role
             )
         }
         composable("campaigns/create") {
@@ -149,11 +150,22 @@ private fun HomeScreen(
     navController: NavHostController,
     userRole: UserRole?
 ) {
+    val availableTabs = if (userRole == UserRole.OPERATOR) {
+        BottomNavTab.entries
+    } else {
+        BottomNavTab.entries.filter { it != BottomNavTab.CAMPANHAS }
+    }
+
     var selectedTab by rememberSaveable { mutableStateOf(BottomNavTab.CHAT) }
+
+    if (selectedTab !in availableTabs) {
+        selectedTab = BottomNavTab.CHAT
+    }
 
     Scaffold(
         bottomBar = {
             BottomNavBar(
+                tabs = availableTabs,
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it }
             )
@@ -164,21 +176,23 @@ private fun HomeScreen(
                 BottomNavTab.CLIENTES -> ClientesScreen()
                 BottomNavTab.SEGMENTOS -> SegmentosScreen()
                 BottomNavTab.CAMPANHAS -> {
-                    val listViewModel: CampaignListViewModel = viewModel(
-                        factory = CampaignListViewModelFactory(
-                            navController.context.applicationContext as Application
+                    if (userRole == UserRole.OPERATOR) {
+                        val listViewModel: CampaignListViewModel = viewModel(
+                            factory = CampaignListViewModelFactory(
+                                navController.context.applicationContext as Application
+                            )
                         )
-                    )
-                    CampaignListScreen(
-                        viewModel = listViewModel,
-                        onCampaignClick = { id ->
-                            navController.navigate("campaigns/$id")
-                        },
-                        onCreateClick = {
-                            navController.navigate("campaigns/create")
-                        },
-                        userRole = userRole
-                    )
+                        CampaignListScreen(
+                            viewModel = listViewModel,
+                            onCampaignClick = { id ->
+                                navController.navigate("campaigns/$id")
+                            },
+                            onCreateClick = {
+                                navController.navigate("campaigns/create")
+                            },
+                            userRole = userRole
+                        )
+                    }
                 }
                 BottomNavTab.CHAT -> ChatListScreen(
                     onChatClick = { cliente ->

@@ -1,6 +1,10 @@
 *.iml
 .gradle
 /local.properties
+/screenshots/
+/logs/
+*.stackdump
+nul
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml

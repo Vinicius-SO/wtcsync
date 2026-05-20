@@ -5,9 +5,9 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface SegmentApi {
-    @GET("segments")
+    @GET("api/segments")
     suspend fun getSegments(): List<SegmentDto>
 
-    @POST("segments")
+    @POST("api/segments")
     suspend fun createSegment(@Body dto: CreateSegmentDto): SegmentDto
 }

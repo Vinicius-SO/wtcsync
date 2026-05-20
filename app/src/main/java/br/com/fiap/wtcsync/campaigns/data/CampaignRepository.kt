@@ -53,6 +53,23 @@ class CampaignRepository(private val campaignApi: CampaignApi) {
         }
     }
 
+    suspend fun deleteCampaign(id: String): Resource<Unit> {
+        return try {
+            campaignApi.deleteCampaign(id)
+            Resource.Success(Unit)
+        } catch (e: retrofit2.HttpException) {
+            val msg = when (e.code()) {
+                409 -> "Exclusão não permitida: campanhas enviadas ou agendadas não podem ser excluídas"
+                404 -> "Campanha não encontrada: ela pode ter sido removida por outro usuário"
+                403 -> "Exclusão negada: apenas operadores têm permissão para excluir campanhas"
+                else -> "Erro ao excluir campanha (código ${e.code()})"
+            }
+            Resource.Error(msg)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Erro ao excluir campanha")
+        }
+    }
+
     suspend fun sendCampaign(id: String): Resource<Campaign> {
         return try {
             val response = campaignApi.sendCampaign(id)

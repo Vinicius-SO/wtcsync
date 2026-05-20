@@ -24,13 +24,18 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,6 +88,7 @@ import br.com.fiap.wtcsync.theme.YellowBadge
 import br.com.fiap.wtcsync.theme.YellowText
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
 import br.com.fiap.wtcsync.R
 
 @Composable
@@ -95,6 +101,21 @@ fun CampaignListScreen(
     val state by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Todas") }
+    var campaignToDelete by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CampaignListEvent.DeleteError -> {
+                    android.widget.Toast.makeText(context, event.message, android.widget.Toast.LENGTH_SHORT).show()
+                }
+                is CampaignListEvent.DeleteSuccess -> {
+                    android.widget.Toast.makeText(context, "Campanha excluída com sucesso", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -152,13 +173,37 @@ fun CampaignListScreen(
                     items(state.campaigns, key = { it.id }) { campaign ->
                         CampaignCard(
                             campaign = campaign,
-                            onClick = { onCampaignClick(campaign.id) }
+                            onClick = { onCampaignClick(campaign.id) },
+                            onDeleteClick = { campaignToDelete = campaign.id }
                         )
                     }
                 }
                 item { PromoCard() }
             }
         }
+    }
+
+    if (campaignToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { campaignToDelete = null },
+            title = { Text("Excluir campanha") },
+            text = { Text("Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteCampaign(campaignToDelete!!)
+                        campaignToDelete = null
+                    }
+                ) {
+                    Text("Excluir", color = androidx.compose.ui.graphics.Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { campaignToDelete = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
@@ -390,7 +435,8 @@ private fun FilterTab(
 @Composable
 private fun CampaignCard(
     campaign: Campaign,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val statusLabel = when (campaign.status.lowercase()) {
         "draft" -> "RASCUNHO"
@@ -403,6 +449,7 @@ private fun CampaignCard(
         "scheduled" -> ListScheduledBg to ListScheduledText
         else -> ListDraftBg to ListDraftText
     }
+    var showMenu by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
@@ -447,12 +494,28 @@ private fun CampaignCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Mais",
-                    tint = TextSecondary,
-                    modifier = Modifier.size(16.dp)
-                )
+                Box {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Mais",
+                        tint = TextSecondary,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { showMenu = true }
+                    )
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Excluir", color = androidx.compose.ui.graphics.Color.Red) },
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
+                }
             }
             Text(
                 text = campaign.body,

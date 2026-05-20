@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import br.com.fiap.wtcsync.campaigns.data.CampaignRepository
 import br.com.fiap.wtcsync.campaigns.domain.Campaign
 import br.com.fiap.wtcsync.util.Resource
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 data class CampaignListUiState(
@@ -18,12 +21,20 @@ data class CampaignListUiState(
     val selectedFilter: String = "Todas"
 )
 
+sealed interface CampaignListEvent {
+    data class DeleteError(val message: String) : CampaignListEvent
+    data object DeleteSuccess : CampaignListEvent
+}
+
 class CampaignListViewModel(
     private val repository: CampaignRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CampaignListUiState())
     val uiState: StateFlow<CampaignListUiState> = _uiState
+
+    private val _events = Channel<CampaignListEvent>(Channel.BUFFERED)
+    val events: Flow<CampaignListEvent> = _events.receiveAsFlow()
 
     private var allCampaigns: List<Campaign> = emptyList()
 
@@ -81,6 +92,24 @@ class CampaignListViewModel(
             campaigns = filtered,
             isEmpty = filtered.isEmpty() && !state.isLoading
         )
+    }
+
+    fun deleteCampaign(id: String) {
+        viewModelScope.launch {
+            when (val result = repository.deleteCampaign(id)) {
+                is Resource.Success -> {
+                    _events.send(CampaignListEvent.DeleteSuccess)
+                    loadCampaigns()
+                }
+                is Resource.Error -> {
+                    _events.send(CampaignListEvent.DeleteError(
+                        result.message ?: "Erro ao excluir campanha"
+                    ))
+                    loadCampaigns()
+                }
+                is Resource.Loading -> {}
+            }
+        }
     }
 
     fun refresh() {

@@ -32,8 +32,11 @@ import br.com.fiap.wtcsync.theme.*
 fun SegmentListScreen(
     segments: List<SegmentDto> = emptyList(),
     isLoading: Boolean = false,
+    error: String? = null,
+    showCreateButton: Boolean = true,
     onCreateClick: () -> Unit = {},
-    onSegmentClick: (String) -> Unit = {}
+    onSegmentClick: (String) -> Unit = {},
+    onRetry: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -70,31 +73,33 @@ fun SegmentListScreen(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            Surface(
-                modifier = Modifier
-                    .shadow(2.dp, RoundedCornerShape(4.dp))
-                    .clickable(onClick = onCreateClick),
-                shape = RoundedCornerShape(4.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+            if (showCreateButton) {
+                Surface(
+                    modifier = Modifier
+                        .shadow(2.dp, RoundedCornerShape(4.dp))
+                        .clickable(onClick = onCreateClick),
+                    shape = RoundedCornerShape(4.dp),
+                    color = YellowBadge,
+                    border = BorderStroke(2.dp, BorderColor)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = YellowText,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = "+ Novo",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = YellowText,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "+ Novo",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = YellowText
+                        )
+                    }
                 }
             }
         }
@@ -167,54 +172,16 @@ fun SegmentListScreen(
 
             if (isLoading) {
                 items(3) { SegmentSkeletonCard() }
+            } else if (error != null) {
+                item {
+                    ErrorState(message = error, onRetry = onRetry)
+                }
             } else if (filtered.isEmpty()) {
                 item {
-                    // Empty state
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.White,
-                        border = BorderStroke(2.dp, BorderColor)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                tint = TextSecondary,
-                                modifier = Modifier.size(40.dp)
-                            )
-                            Text(
-                                text = "Crie novos filtros",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "Organize sua base de contatos por interesses ou localização.",
-                                fontSize = 13.sp,
-                                color = TextSecondary,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                            Surface(
-                                onClick = onCreateClick,
-                                shape = RoundedCornerShape(8.dp),
-                                color = YellowBadge,
-                                border = BorderStroke(2.dp, BorderColor)
-                            ) {
-                                Text(
-                                    text = "+ Novo Segmento",
-                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = YellowText
-                                )
-                            }
-                        }
-                    }
+                    EmptyState(
+                        showCreateButton = showCreateButton,
+                        onCreateClick = onCreateClick
+                    )
                 }
             } else {
                 items(filtered, key = { it.id }) { segment ->
@@ -360,6 +327,103 @@ private fun SegmentSkeletonCard() {
                     .height(36.dp)
                     .background(Color(0xFFE8E5E0), RoundedCornerShape(2.dp))
             )
+        }
+    }
+}
+
+@Composable
+private fun ErrorState(message: String, onRetry: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White,
+        border = BorderStroke(2.dp, BorderColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Erro ao carregar segmentos",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Text(
+                text = message,
+                fontSize = 13.sp,
+                color = TextSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Surface(
+                onClick = onRetry,
+                shape = RoundedCornerShape(8.dp),
+                color = YellowBadge,
+                border = BorderStroke(2.dp, BorderColor)
+            ) {
+                Text(
+                    text = "Tentar novamente",
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = YellowText
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(
+    showCreateButton: Boolean,
+    onCreateClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White,
+        border = BorderStroke(2.dp, BorderColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = TextSecondary,
+                modifier = Modifier.size(40.dp)
+            )
+            Text(
+                text = "Crie novos filtros",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Text(
+                text = "Organize sua base de contatos por interesses ou localização.",
+                fontSize = 13.sp,
+                color = TextSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            if (showCreateButton) {
+                Surface(
+                    onClick = onCreateClick,
+                    shape = RoundedCornerShape(8.dp),
+                    color = YellowBadge,
+                    border = BorderStroke(2.dp, BorderColor)
+                ) {
+                    Text(
+                        text = "+ Novo Segmento",
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = YellowText
+                    )
+                }
+            }
         }
     }
 }

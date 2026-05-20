@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +29,7 @@ import br.com.fiap.wtcsync.campaigns.ui.create.CreateCampaignViewModelFactory
 import br.com.fiap.wtcsync.campaigns.ui.detail.CampaignDetailScreen
 import br.com.fiap.wtcsync.campaigns.ui.detail.CampaignDetailViewModel
 import br.com.fiap.wtcsync.campaigns.ui.detail.CampaignDetailViewModelFactory
+import br.com.fiap.wtcsync.campaigns.ui.client.ClientCampaignScreen
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListScreen
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModel
 import br.com.fiap.wtcsync.campaigns.ui.list.CampaignListViewModelFactory
@@ -183,7 +188,7 @@ private fun HomeScreen(
     navController: NavHostController,
     userRole: UserRole?
 ) {
-    val availableTabs = if (userRole == UserRole.OPERATOR) {
+    val availableTabs = if (userRole == UserRole.OPERATOR || userRole == UserRole.CLIENTE) {
         BottomNavTab.entries
     } else {
         BottomNavTab.entries.filter { it != BottomNavTab.CAMPANHAS }
@@ -211,25 +216,49 @@ private fun HomeScreen(
                     onClienteClick = { id -> navController.navigate("clientes/$id/editar") }
                 )
                 BottomNavTab.SEGMENTOS -> SegmentosScreen(
+                    application = navController.context.applicationContext as Application,
+                    userRole = userRole,
                     onCreateClick = { navController.navigate("segments/create") }
                 )
                 BottomNavTab.CAMPANHAS -> {
-                    if (userRole == UserRole.OPERATOR) {
-                        val listViewModel: CampaignListViewModel = viewModel(
-                            factory = CampaignListViewModelFactory(
-                                navController.context.applicationContext as Application
+                    when (userRole) {
+                        UserRole.OPERATOR -> {
+                            val listViewModel: CampaignListViewModel = viewModel(
+                                factory = CampaignListViewModelFactory(
+                                    navController.context.applicationContext as Application
+                                )
                             )
-                        )
-                        CampaignListScreen(
-                            viewModel = listViewModel,
-                            onCampaignClick = { id ->
-                                navController.navigate("campaigns/$id")
-                            },
-                            onCreateClick = {
-                                navController.navigate("campaigns/create")
-                            },
-                            userRole = userRole
-                        )
+                            val lifecycleOwner = LocalLifecycleOwner.current
+                            var isFirstResume by rememberSaveable { mutableStateOf(true) }
+                            DisposableEffect(lifecycleOwner) {
+                                val observer = LifecycleEventObserver { _, event ->
+                                    if (event == Lifecycle.Event.ON_RESUME) {
+                                        if (!isFirstResume) {
+                                            listViewModel.refresh()
+                                        }
+                                        isFirstResume = false
+                                    }
+                                }
+                                lifecycleOwner.lifecycle.addObserver(observer)
+                                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                            }
+                            CampaignListScreen(
+                                viewModel = listViewModel,
+                                onCampaignClick = { id ->
+                                    navController.navigate("campaigns/$id")
+                                },
+                                onCreateClick = {
+                                    navController.navigate("campaigns/create")
+                                },
+                                userRole = userRole
+                            )
+                        }
+                        UserRole.CLIENTE -> {
+                            ClientCampaignScreen(
+                                application = navController.context.applicationContext as Application
+                            )
+                        }
+                        else -> {}
                     }
                 }
                 BottomNavTab.CHAT -> ChatListScreen(

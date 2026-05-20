@@ -4,6 +4,7 @@ import br.com.fiap.wtcsync.campaigns.data.dto.CampaignDto
 import br.com.fiap.wtcsync.campaigns.data.dto.CreateCampaignDto
 import br.com.fiap.wtcsync.campaigns.data.dto.ScheduleCampaignDto
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -27,4 +28,7 @@ interface CampaignApi {
 
     @POST("api/campaigns/{id}/send")
     suspend fun sendCampaign(@Path("id") id: String): CampaignDto
+
+    @DELETE("api/campaigns/{id}")
+    suspend fun deleteCampaign(@Path("id") id: String)
 }

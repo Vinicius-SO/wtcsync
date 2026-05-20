@@ -27,7 +27,7 @@ class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor 
 class ApiService(private val sessionManager: SessionManager) {
 
     companion object {
-        private const val BASE_URL = "https://wtcsyncapi-production.up.railway.app/"
+        private const val BASE_URL = "https://wtcsync-api.onrender.com/"
     }
 
     private val okHttpClient: OkHttpClient by lazy {

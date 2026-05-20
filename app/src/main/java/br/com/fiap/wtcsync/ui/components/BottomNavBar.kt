@@ -45,6 +45,7 @@ enum class BottomNavTab(val icon: ImageVector, val label: String) {
 
 @Composable
 fun BottomNavBar(
+    tabs: List<BottomNavTab> = BottomNavTab.entries,
     selectedTab: BottomNavTab,
     onTabSelected: (BottomNavTab) -> Unit,
     modifier: Modifier = Modifier
@@ -74,7 +75,7 @@ fun BottomNavBar(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavTab.entries.forEach { tab ->
+                tabs.forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = tab == selectedTab,

@@ -12,7 +12,11 @@ import kotlinx.coroutines.launch
 data class CampaignDetailUiState(
     val campaign: Campaign? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isScheduling: Boolean = false,
+    val isSending: Boolean = false,
+    val actionError: String? = null,
+    val actionSuccess: String? = null
 )
 
 class CampaignDetailViewModel(
@@ -42,5 +46,61 @@ class CampaignDetailViewModel(
                 is Resource.Loading -> {}
             }
         }
+    }
+
+    fun scheduleCampaign(scheduledAt: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isScheduling = true,
+                actionError = null,
+                actionSuccess = null
+            )
+            when (val result = repository.scheduleCampaign(campaignId, scheduledAt)) {
+                is Resource.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        campaign = result.data,
+                        isScheduling = false,
+                        actionSuccess = "Campanha agendada com sucesso"
+                    )
+                }
+                is Resource.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isScheduling = false,
+                        actionError = result.message ?: "Erro ao agendar campanha"
+                    )
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun sendCampaign() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSending = true,
+                actionError = null,
+                actionSuccess = null
+            )
+            when (val result = repository.sendCampaign(campaignId)) {
+                is Resource.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        campaign = result.data,
+                        isSending = false,
+                        actionSuccess = "Campanha enviada com sucesso"
+                    )
+                }
+                is Resource.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isSending = false,
+                        actionError = result.message ?: "Erro ao enviar campanha"
+                    )
+                }
+                is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun clearActionFeedback() {
+        _uiState.value = _uiState.value.copy(actionError = null, actionSuccess = null)
     }
 }

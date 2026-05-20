@@ -37,7 +37,7 @@ class AuthViewModel(
                 _currentRole.value = when (role?.uppercase()) {
                     "OPERATOR" -> UserRole.OPERATOR
                     "ATENDENTE" -> UserRole.ATENDENTE
-                    else -> _currentRole.value
+                    else -> UserRole.CLIENTE
                 }
             }
         }

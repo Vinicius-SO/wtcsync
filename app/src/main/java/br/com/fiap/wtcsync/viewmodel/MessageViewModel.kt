@@ -7,12 +7,15 @@ import br.com.fiap.wtcsync.data.local.SessionManager
 import br.com.fiap.wtcsync.data.remote.MessageApi
 import br.com.fiap.wtcsync.data.remote.dto.MessageDto
 import br.com.fiap.wtcsync.data.remote.dto.MessageRequest
-import kotlinx.coroutines.delay
+import com.google.gson.Gson
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ua.naiksoftware.stomp.Stomp
+import ua.naiksoftware.stomp.StompClient
 
 data class MessageUiState(
     val messages: List<MessageDto> = emptyList(),
@@ -30,9 +33,16 @@ class MessageViewModel(
     private val _uiState = MutableStateFlow(MessageUiState())
     val uiState: StateFlow<MessageUiState> = _uiState.asStateFlow()
 
+    private val gson = Gson()
+    private val disposables = CompositeDisposable()
+    private var stompClient: StompClient? = null
+
+    // TROCA PELO IP DA SUA MÁQUINA OU URL DO SERVIDOR
+    private val wsUrl = "ws://10.0.2.2:8080/ws/websocket"
+
     init {
         loadInbox()
-        startPolling()
+        connectWebSocket()
     }
 
     fun loadInbox(silent: Boolean = false) {
@@ -48,17 +58,41 @@ class MessageViewModel(
         }
     }
 
-    private fun startPolling() {
-        viewModelScope.launch {
-            while (true) {
-                delay(3000)
-                try {
-                    val messages = messageApi.getInbox(clienteId)
-                    _uiState.update { it.copy(messages = messages) }
-                    markDelivered(messages)
-                } catch (_: Exception) {}
+    private fun connectWebSocket() {
+        val currentEmail = sessionManager.currentEmail ?: return
+
+        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, wsUrl)
+
+        val connectDisposable = stompClient!!.lifecycle().subscribe { event ->
+            when (event.type) {
+                ua.naiksoftware.stomp.dto.LifecycleEvent.Type.OPENED -> {
+                    subscribeToMessages(currentEmail)
+                }
+                ua.naiksoftware.stomp.dto.LifecycleEvent.Type.ERROR -> {
+                    // Fallback silencioso — mensagens ainda carregam via REST
+                }
+                else -> {}
             }
         }
+        disposables.add(connectDisposable)
+        stompClient!!.connect()
+    }
+
+    private fun subscribeToMessages(currentEmail: String) {
+        // Escuta mensagens 1:1 do usuário logado
+        val subDisposable = stompClient!!
+            .topic("/topic/chat/$currentEmail")
+            .subscribe { stompMessage ->
+                try {
+                    val message = gson.fromJson(stompMessage.payload, MessageDto::class.java)
+                    val current = _uiState.value.messages.toMutableList()
+                    if (current.none { it.id == message.id }) {
+                        current.add(message)
+                        _uiState.update { it.copy(messages = current) }
+                    }
+                } catch (_: Exception) {}
+            }
+        disposables.add(subDisposable)
     }
 
     private fun markDelivered(messages: List<MessageDto>) {
@@ -83,6 +117,7 @@ class MessageViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true, error = null) }
             try {
+                // Envia via REST (mais confiável para garantir persistência)
                 messageApi.sendMessage(MessageRequest(senderId, clienteId, text))
                 _uiState.update { it.copy(isSending = false) }
                 loadInbox(silent = true)
@@ -90,6 +125,12 @@ class MessageViewModel(
                 _uiState.update { it.copy(isSending = false, error = e.message) }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposables.clear()
+        stompClient?.disconnect()
     }
 }
 

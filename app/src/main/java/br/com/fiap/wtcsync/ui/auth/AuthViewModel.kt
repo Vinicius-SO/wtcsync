@@ -11,6 +11,7 @@ import br.com.fiap.wtcsync.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AuthViewModel(
     private val repository: AuthRepository,
@@ -48,7 +49,8 @@ class AuthViewModel(
             try {
                 Log.d(TAG, "Iniciando login com email")
                 _userState.value = Resource.Loading()
-                val result = repository.loginWithApi(email, password)
+                val result = withTimeoutOrNull(45_000L) { repository.loginWithApi(email, password) }
+                    ?: Resource.Error("O servidor não respondeu em 45 segundos. Verifique o status da API e tente novamente.")
                 if (result is Resource.Success) {
                     val role = result.data?.role
                     Log.d(TAG, "Login bem-sucedido. Role do usuário: $role")

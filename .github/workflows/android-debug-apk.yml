@@ -34,6 +34,12 @@ jobs:
       - name: Allow Gradle wrapper execution
         run: chmod +x ./gradlew
 
+      - name: Check Render API connectivity
+        run: |
+          echo "Checking API DNS and HTTPS availability (no credentials sent)"
+          getent hosts wtcsync-api.onrender.com || true
+          curl -L -sS --max-time 20 -o /dev/null -w 'HTTP status: %{http_code}; total: %{time_total}s\\n' https://wtcsync-api.onrender.com/ || true
+
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
 

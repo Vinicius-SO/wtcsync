@@ -129,7 +129,7 @@ class AuthRepository(
             Resource.Error("Sem conexão com a internet")
         } catch (e: java.net.SocketTimeoutException) {
             Log.e(TAG, "Timeout no login via API", e)
-            Resource.Error("Tempo limite excedido. Verifique sua conexão.")
+            Resource.Error("O servidor demorou a responder. Aguarde alguns instantes e tente novamente.")
         } catch (e: Exception) {
             Log.e(TAG, "Erro no login via API", e)
             Resource.Error(e.message ?: "Erro ao fazer login via API")

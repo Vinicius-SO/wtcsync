@@ -139,6 +139,7 @@ fun LoginScreen(
 
             // 9. Botão Conectar
             Button(
+                enabled = userState !is Resource.Loading,
                 onClick = {
                     if (NetworkUtils.isConnected(context)) {
                         viewModel.login(email, senha)
@@ -152,10 +153,19 @@ fun LoginScreen(
                     .height(50.dp)
             ) {
                 Text(
-                    "Conectar",
+                    if (userState is Resource.Loading) "Conectando..." else "Conectar",
                     color = Color.Black, // Texto Preto
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (userState is Resource.Error) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = (userState as Resource.Error).message ?: "Falha ao conectar ao servidor.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 

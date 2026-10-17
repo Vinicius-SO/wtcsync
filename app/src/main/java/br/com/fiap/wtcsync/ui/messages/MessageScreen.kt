@@ -68,7 +68,8 @@ import br.com.fiap.wtcsync.viewmodel.MessageViewModelFactory
 fun MessageScreen(
     clienteId: String,
     contactName: String,
-    navController: NavController
+    navController: NavController,
+    showBackButton: Boolean = true
 ) {
     val app = LocalContext.current.applicationContext as WtcSyncApp
     val viewModel: MessageViewModel = viewModel(
@@ -84,7 +85,8 @@ fun MessageScreen(
         topBar = {
             ChatHeader(
                 contactName = contactName,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                showBackButton = showBackButton
             )
         },
         bottomBar = {
@@ -155,7 +157,7 @@ fun MessageScreen(
 }
 
 @Composable
-private fun ChatHeader(contactName: String, onBackClick: () -> Unit) {
+private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -167,7 +169,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit) {
             .padding(end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
+        if (showBackButton) IconButton(onClick = onBackClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Voltar",

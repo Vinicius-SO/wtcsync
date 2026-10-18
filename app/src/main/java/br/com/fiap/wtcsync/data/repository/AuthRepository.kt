@@ -148,27 +148,15 @@ class AuthRepository(
 
     suspend fun loginWithGoogle(idToken: String): Resource<User> {
         return try {
-            Log.d(TAG, "Iniciando login com Google")
-
-            // 1. Autentica com Firebase Auth
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val result = firebaseAuth.signInWithCredential(credential).await()
-            val firebaseUser = result.user ?: return Resource.Error("Erro ao autenticar com Google")
-
-            Log.d(TAG, "Autenticação Firebase bem-sucedida. UID: ${firebaseUser.uid}")
-
-            // 2. Busca ou cria o usuário no Firestore usando o método getOrCreateUser
-            val user = firestoreDataSource.getOrCreateUser(
-                uid = firebaseUser.uid,
-                name = firebaseUser.displayName,
-                email = firebaseUser.email
-            )
-
-            Log.d(TAG, "Login com Google concluído com sucesso")
-            Resource.Success(user)
+            if (result.user == null) return Resource.Error("Não foi possível autenticar com Google.")
+            // O backend usa JWT próprio. Firebase Auth sozinho não autoriza acesso
+            // aos endpoints REST. Não navegar com uma sessão incompleta.
+            Resource.Error("Google autenticado, mas a vinculação com a API ainda não está disponível. Use e-mail e senha.")
         } catch (e: Exception) {
-            Log.e(TAG, "Erro no login com Google", e)
-            Resource.Error(e.message ?: "Erro no login com Google")
+            Log.e(TAG, "Falha de autenticação Google", e)
+            Resource.Error("Não foi possível autenticar com Google. Verifique a configuração OAuth do aplicativo.")
         }
     }
 }

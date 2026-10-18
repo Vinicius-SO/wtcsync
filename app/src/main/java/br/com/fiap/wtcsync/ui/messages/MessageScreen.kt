@@ -95,8 +95,8 @@ fun MessageScreen(
                 onTextChange = { messageText = it },
                 isSending = uiState.isSending,
                 onSendClick = {
+                    // Keep the draft until the API confirms delivery.
                     viewModel.sendMessage(messageText)
-                    messageText = ""
                 }
             )
         }

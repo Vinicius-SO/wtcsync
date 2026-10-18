@@ -21,7 +21,8 @@ data class MessageUiState(
     val messages: List<MessageDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSending: Boolean = false
+    val isSending: Boolean = false,
+    val sentCount: Int = 0
 )
 
 class MessageViewModel(
@@ -126,7 +127,7 @@ class MessageViewModel(
             _uiState.update { it.copy(isSending = true, error = null) }
             try {
                 messageApi.sendMessage(MessageRequest(senderId, clienteId, text))
-                _uiState.update { it.copy(isSending = false) }
+                _uiState.update { it.copy(isSending = false, sentCount = it.sentCount + 1) }
                 loadConversation(silent = true)
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSending = false, error = e.message) }

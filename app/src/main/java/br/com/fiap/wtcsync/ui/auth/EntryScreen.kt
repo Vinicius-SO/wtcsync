@@ -29,7 +29,7 @@ val YellowPrimary = Color(0xFFFFCC00)
 val BlackPrimary = Color(0xFF1C1C1E)
 val LightBackground = Color(0xFFFFF9EF)
 val DividerColor = Color(0xFFE0E0E0)
-val SubtitleGray = Color(0xFF8A8A8E)
+val SubtitleGray = Color(0xFF474746)
 
 val robotoFamily = FontFamily(
     Font(R.font.roboto, FontWeight.Bold)
@@ -132,7 +132,7 @@ fun EntryScreen(
                 ) {
                     Text(
                         "Login",
-                        color = Color.White,
+                        color = Color.Black,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp

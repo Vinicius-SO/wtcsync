@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,6 +80,9 @@ fun MessageScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currentEmail = app.sessionManager.currentEmail ?: ""
     var messageText by remember { mutableStateOf("") }
+    LaunchedEffect(uiState.sentCount) {
+        if (uiState.sentCount > 0) messageText = ""
+    }
 
     Scaffold(
         containerColor = BackgroundCream,

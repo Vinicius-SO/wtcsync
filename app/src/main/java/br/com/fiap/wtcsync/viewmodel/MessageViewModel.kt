@@ -37,7 +37,7 @@ class MessageViewModel(
     private val disposables = CompositeDisposable()
     private var stompClient: StompClient? = null
 
-    private val wsUrl = "ws://10.0.2.2:8080/ws/websocket"
+    private val wsUrl = "wss://wtcsync-api.onrender.com/ws/websocket"
 
     init {
         loadConversation()
@@ -46,7 +46,10 @@ class MessageViewModel(
 
     // Carrega apenas a conversa entre o operador logado e o cliente
     fun loadConversation(silent: Boolean = false) {
-        val operadorId = sessionManager.currentEmail ?: return
+        val operadorId = sessionManager.currentEmail ?: run {
+            _uiState.update { it.copy(isLoading = false, error = "Sessão ausente. Entre novamente.") }
+            return
+        }
         viewModelScope.launch {
             if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
             try {

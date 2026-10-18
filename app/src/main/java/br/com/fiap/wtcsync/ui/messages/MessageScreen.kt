@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,7 +69,8 @@ import br.com.fiap.wtcsync.viewmodel.MessageViewModelFactory
 fun MessageScreen(
     clienteId: String,
     contactName: String,
-    navController: NavController
+    navController: NavController,
+    showBackButton: Boolean = true
 ) {
     val app = LocalContext.current.applicationContext as WtcSyncApp
     val viewModel: MessageViewModel = viewModel(
@@ -78,13 +80,17 @@ fun MessageScreen(
     val uiState by viewModel.uiState.collectAsState()
     val currentEmail = app.sessionManager.currentEmail ?: ""
     var messageText by remember { mutableStateOf("") }
+    LaunchedEffect(uiState.sentCount) {
+        if (uiState.sentCount > 0) messageText = ""
+    }
 
     Scaffold(
         containerColor = BackgroundCream,
         topBar = {
             ChatHeader(
                 contactName = contactName,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                showBackButton = showBackButton
             )
         },
         bottomBar = {
@@ -93,8 +99,8 @@ fun MessageScreen(
                 onTextChange = { messageText = it },
                 isSending = uiState.isSending,
                 onSendClick = {
+                    // Keep the draft until the API confirms delivery.
                     viewModel.sendMessage(messageText)
-                    messageText = ""
                 }
             )
         }
@@ -155,7 +161,7 @@ fun MessageScreen(
 }
 
 @Composable
-private fun ChatHeader(contactName: String, onBackClick: () -> Unit) {
+private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -167,7 +173,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit) {
             .padding(end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = onBackClick) {
+        if (showBackButton) IconButton(onClick = onBackClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Voltar",

@@ -5,6 +5,17 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.style.TextAlign
+import br.com.fiap.wtcsync.WtcSyncApp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -16,6 +27,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -62,6 +74,7 @@ fun Navigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "entry") {
         composable("entry") {
             EntryScreen(
+                viewModel = authViewModel,
                 onLoginClick = { navController.navigate("login") },
                 onRegisterClick = { navController.navigate("register") },
                 onLoginSuccess = {
@@ -188,7 +201,12 @@ private fun HomeScreen(
     navController: NavHostController,
     userRole: UserRole?
 ) {
-    val availableTabs = if (userRole == UserRole.OPERATOR || userRole == UserRole.CLIENTE) {
+    // O cliente possui um único canal de atendimento, sem CRM ou lista de conversas.
+    if (userRole == UserRole.CLIENTE) {
+        ClientSupportHome()
+        return
+    }
+    val availableTabs = if (userRole == UserRole.OPERATOR) {
         BottomNavTab.entries
     } else {
         BottomNavTab.entries.filter { it != BottomNavTab.CAMPANHAS }
@@ -270,6 +288,51 @@ private fun HomeScreen(
                     onCreateClick = { navController.navigate("clientes/novo") }
                 )
             }
+        }
+    }
+}
+
+/** Canal único do cliente. Busca o registro pelo e-mail autenticado,
+ * nunca seleciona arbitrariamente a primeira conversa da lista. */
+@Composable
+private fun ClientSupportHome() {
+    val app = LocalContext.current.applicationContext as WtcSyncApp
+    var clientId by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(app) {
+        loading = true
+        try {
+            val email = app.sessionManager.currentEmail
+            if (email.isNullOrBlank()) {
+                error = "Sua sessão não está disponível. Entre novamente."
+            } else {
+                val client = app.apiService.clientApi.getClients()
+                    .firstOrNull { it.email.equals(email, ignoreCase = true) }
+                if (client == null) {
+                    error = "Não foi possível localizar seu atendimento. Contate o suporte."
+                } else {
+                    clientId = client.id
+                }
+            }
+        } catch (_: Exception) {
+            error = "Não foi possível carregar o atendimento. Verifique sua conexão."
+        } finally {
+            loading = false
+        }
+    }
+    when {
+        loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        clientId != null -> MessageScreen(
+            clienteId = clientId!!,
+            contactName = "Atendimento WTCSync",
+            navController = androidx.navigation.compose.rememberNavController(),
+            showBackButton = false
+        )
+        else -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Text(error ?: "Atendimento indisponível", textAlign = TextAlign.Center)
         }
     }
 }

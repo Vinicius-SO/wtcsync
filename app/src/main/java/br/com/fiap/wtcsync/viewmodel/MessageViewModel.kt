@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 
@@ -21,7 +23,8 @@ data class MessageUiState(
     val messages: List<MessageDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSending: Boolean = false
+    val isSending: Boolean = false,
+    val sentCount: Int = 0
 )
 
 class MessageViewModel(
@@ -37,16 +40,25 @@ class MessageViewModel(
     private val disposables = CompositeDisposable()
     private var stompClient: StompClient? = null
 
-    private val wsUrl = "ws://10.0.2.2:8080/ws/websocket"
+    private val wsUrl = "wss://wtcsync-api.onrender.com/ws/websocket"
 
     init {
         loadConversation()
         connectWebSocket()
+        viewModelScope.launch {
+            while (isActive) {
+                delay(12_000L)
+                loadConversation(silent = true)
+            }
+        }
     }
 
     // Carrega apenas a conversa entre o operador logado e o cliente
     fun loadConversation(silent: Boolean = false) {
-        val operadorId = sessionManager.currentEmail ?: return
+        val operadorId = sessionManager.currentEmail ?: run {
+            _uiState.update { it.copy(isLoading = false, error = "Sessão ausente. Entre novamente.") }
+            return
+        }
         viewModelScope.launch {
             if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
             try {
@@ -123,7 +135,7 @@ class MessageViewModel(
             _uiState.update { it.copy(isSending = true, error = null) }
             try {
                 messageApi.sendMessage(MessageRequest(senderId, clienteId, text))
-                _uiState.update { it.copy(isSending = false) }
+                _uiState.update { it.copy(isSending = false, sentCount = it.sentCount + 1) }
                 loadConversation(silent = true)
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSending = false, error = e.message) }

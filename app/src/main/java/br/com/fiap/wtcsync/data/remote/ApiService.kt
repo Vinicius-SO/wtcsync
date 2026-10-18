@@ -13,9 +13,10 @@ import java.util.concurrent.TimeUnit
 class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val token = sessionManager.currentToken
-        val request = if (token != null) {
+        val request = if (token != null && chain.request().header("Authorization") == null &&
+            chain.request().url.encodedPath !in setOf("/api/auth/login", "/api/auth/google", "/api/auth/register")) {
             chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer $token")
+                .header("Authorization", "Bearer $token")
                 .build()
         } else {
             chain.request()
@@ -32,14 +33,15 @@ class ApiService(private val sessionManager: SessionManager) {
 
     private val okHttpClient: OkHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.BASIC
         }
         OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(sessionManager))
             .addInterceptor(logging)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(45, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(45, TimeUnit.SECONDS)
+            .callTimeout(150, TimeUnit.SECONDS)
             .build()
     }
 

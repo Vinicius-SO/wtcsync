@@ -1,0 +1,100 @@
+name: Android Debug APK
+
+on:
+  push:
+    branches:
+      - main
+      - feature/ux-role-navigation
+      - feature/unified-auth
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Install Android API 36
+        run: |
+          SDKMANAGER=$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | head -n 1)
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Allow Gradle wrapper execution
+        run: chmod +x ./gradlew
+
+      - name: Check Render API connectivity
+        run: |
+          echo "Checking API DNS and HTTPS availability (no credentials sent)"
+          getent hosts wtcsync-api.onrender.com || true
+          curl -L -sS --max-time 20 -o /dev/null -w 'HTTP status: %{http_code}; total: %{time_total}s\\n' https://wtcsync-api.onrender.com/ || true
+
+      - name: Verify Swagger and authentication endpoints
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, json, time
+          base = 'https://wtcsync-api.onrender.com'
+          paths = ['/swagger-ui/index.html', '/v3/api-docs', '/v3/api-docs/swagger-config', '/api/auth/login']
+          for path in paths:
+              req = urllib.request.Request(base+path, method='GET')
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as resp:
+                      body = resp.read(500000).decode('utf-8','replace')
+                      print(path, 'GET', resp.status, 'content-type:', resp.headers.get('Content-Type'))
+                      if path == '/v3/api-docs':
+                          try:
+                              doc=json.loads(body)
+                              print('OpenAPI paths:', sorted(doc.get('paths',{}).keys()))
+                              print('Login operations:', json.dumps(doc.get('paths',{}).get('/api/auth/login',{}),ensure_ascii=False)[:2500])
+                              print('Firebase exchange:', json.dumps(doc.get('paths',{}).get('/api/auth/firebase-token',{}),ensure_ascii=False)[:2500])
+                              print('Auth schemas:', json.dumps({k:v for k,v in doc.get('components',{}).get('schemas',{}).items() if 'Firebase' in k or 'AuthResponse' in k},ensure_ascii=False)[:2500])
+                          except Exception as e: print('OpenAPI parse:',type(e).__name__)
+              except urllib.error.HTTPError as e:
+                  print(path,'GET',e.code)
+              except Exception as e:
+                  print(path,'GET',type(e).__name__,str(e)[:180])
+          req=urllib.request.Request(base+'/api/auth/login',data=json.dumps({'email':'invalid-test@example.invalid','password':'invalid-test-only'}).encode(),headers={'Content-Type':'application/json'},method='POST')
+          try:
+              with urllib.request.urlopen(req,timeout=25) as resp:
+                  print('Dummy credentials POST /api/auth/login:',resp.status)
+          except urllib.error.HTTPError as e:
+              print('Dummy credentials POST /api/auth/login:',e.code,'(401/403 indicates route reached and rejected dummy credentials)')
+          except Exception as e:
+              print('Dummy credentials POST /api/auth/login:',type(e).__name__,str(e)[:180])
+          PY
+
+      - name: Keep the debug signing identity stable
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: wtcsync-debug-signing-v1
+
+      - name: Run unit tests and build debug APK
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Export APK signing fingerprints
+        run: ./gradlew :app:signingReport --no-daemon > app/build/outputs/apk/debug/signing-report.txt
+
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WTCSync-debug-apk
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/signing-report.txt
+          retention-days: 14
+          if-no-files-found: error

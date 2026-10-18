@@ -29,7 +29,7 @@ val YellowPrimary = Color(0xFFFFCC00)
 val BlackPrimary = Color(0xFF1C1C1E)
 val LightBackground = Color(0xFFFFF9EF)
 val DividerColor = Color(0xFFE0E0E0)
-val SubtitleGray = Color(0xFF8A8A8E)
+val SubtitleGray = Color(0xFF474746)
 
 val robotoFamily = FontFamily(
     Font(R.font.roboto, FontWeight.Bold)
@@ -43,25 +43,35 @@ val nunitoFamily = FontFamily(
 fun EntryScreen(
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String) -> Unit,
+    viewModel: AuthViewModel
 ) {
     val context = LocalContext.current
-    val app = context.applicationContext as android.app.Application
-    val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(app))
     val userState by viewModel.userState.collectAsState()
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.data != null) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
-                val idToken = account.idToken!!
-                viewModel.loginWithGoogle(idToken)
+                val idToken = account.idToken
+                if (idToken.isNullOrBlank()) Toast.makeText(context, "Token Google indisponível.", Toast.LENGTH_LONG).show()
+                else viewModel.loginWithGoogle(idToken)
             } catch (e: ApiException) {
-                Toast.makeText(context, "Falha no login com Google: ${e.message}", Toast.LENGTH_LONG).show()
+                val message = when (e.statusCode) {
+                    12501 -> "Login Google cancelado."
+                    10 -> "Login Google não configurado para a assinatura deste APK. Verifique o SHA no Firebase."
+                    7 -> "Sem conexão para acessar sua conta Google."
+                    else -> "Falha no login Google (código ${e.statusCode})."
+                }
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            } catch (_: Exception) {
+                Toast.makeText(context, "Não foi possível acessar a conta Google.", Toast.LENGTH_LONG).show()
             }
+        } else {
+            Toast.makeText(context, "Login Google cancelado ou indisponível.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -70,7 +80,6 @@ fun EntryScreen(
         when (val state = userState) {
             is Resource.Success -> {
                 Toast.makeText(context, "Login bem-sucedido! Bem-vindo ${state.data?.email}", Toast.LENGTH_SHORT).show()
-                viewModel.resetState() // Reseta o estado após sucesso
                 onLoginSuccess(state.data?.email ?: "")
             }
             is Resource.Error -> {
@@ -133,7 +142,7 @@ fun EntryScreen(
                 ) {
                     Text(
                         "Login",
-                        color = Color.White,
+                        color = Color.Black,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp

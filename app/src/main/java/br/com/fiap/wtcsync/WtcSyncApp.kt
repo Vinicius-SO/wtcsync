@@ -47,7 +47,6 @@ class WtcSyncApp : Application() {
         segmentRepository = SegmentRepository(apiService.segmentApi)
         authRepository = AuthRepository(
             firebaseAuth = firebaseAuth,
-            firestoreDataSource = firestoreDataSource,
             authApi = apiService.authApi,
             sessionManager = sessionManager
         )

@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.wtcsync.R
 import br.com.fiap.wtcsync.data.model.User
-import br.com.fiap.wtcsync.util.NetworkUtils
 import br.com.fiap.wtcsync.util.Resource
 
 
@@ -139,12 +138,9 @@ fun LoginScreen(
 
             // 9. Botão Conectar
             Button(
+                enabled = userState !is Resource.Loading,
                 onClick = {
-                    if (NetworkUtils.isConnected(context)) {
-                        viewModel.login(email, senha)
-                    } else {
-                        Toast.makeText(context, "Sem conexão com a internet", Toast.LENGTH_SHORT).show()
-                    }
+                    viewModel.login(email.trim(), senha)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary), // Cor Amarela
                 modifier = Modifier
@@ -152,10 +148,19 @@ fun LoginScreen(
                     .height(50.dp)
             ) {
                 Text(
-                    "Conectar",
+                    if (userState is Resource.Loading) "Conectando..." else "Conectar",
                     color = Color.Black, // Texto Preto
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (userState is Resource.Error) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = (userState as Resource.Error).message ?: "Falha ao conectar ao servidor.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 

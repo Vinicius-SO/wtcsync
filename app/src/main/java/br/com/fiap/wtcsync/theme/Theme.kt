@@ -1,6 +1,7 @@
 package br.com.fiap.wtcsync.theme
 
 import android.os.Build
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -11,15 +12,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = YellowBadge,
+    onPrimary = YellowText,
+    background = TextPrimary,
+    surface = TextPrimary,
+    onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = YellowBadge,
+    onPrimary = YellowText,
+    background = BackgroundCream,
+    surface = HeaderBg,
+    onSurface = TextPrimary
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -36,7 +41,7 @@ private val LightColorScheme = lightColorScheme(
 fun WTCSYNCTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

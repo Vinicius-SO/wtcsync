@@ -74,8 +74,8 @@ jobs:
               print('Dummy credentials POST /api/auth/login:',type(e).__name__,str(e)[:180])
           PY
 
-      - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+      - name: Run unit tests and build debug APK
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon
 
       - name: Upload debug APK
         if: success()

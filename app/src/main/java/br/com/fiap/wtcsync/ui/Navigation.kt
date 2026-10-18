@@ -320,8 +320,10 @@ private fun ClientSupportHome() {
     var clientId by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(app) {
+    var retry by remember { mutableStateOf(0) }
+    LaunchedEffect(app, retry) {
         loading = true
+        error = null
         try {
             val email = app.sessionManager.currentEmail
             if (email.isNullOrBlank()) {
@@ -329,8 +331,20 @@ private fun ClientSupportHome() {
             } else {
                 clientId = app.apiService.clientApi.getMyClient().id
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: retrofit2.HttpException) {
+            error = when (e.code()) {
+                401 -> "Sua sessão expirou. Saia e entre novamente."
+                403 -> "O servidor recusou o acesso ao atendimento (403). Saia e entre novamente."
+                404 -> "A rota de atendimento não está disponível no servidor (404)."
+                in 500..599 -> "O servidor não conseguiu carregar seu atendimento (${e.code()}). Tente novamente."
+                else -> "Não foi possível carregar o atendimento (${e.code()})."
+            }
+        } catch (_: java.io.IOException) {
+            error = "Não foi possível conectar ao atendimento. Verifique sua conexão e tente novamente."
         } catch (_: Exception) {
-            error = "Não foi possível carregar o atendimento. Verifique sua conexão."
+            error = "O servidor retornou um atendimento inválido. Tente novamente."
         } finally {
             loading = false
         }
@@ -346,7 +360,10 @@ private fun ClientSupportHome() {
             showBackButton = false
         )
         else -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(error ?: "Atendimento indisponível", textAlign = TextAlign.Center)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(error ?: "Atendimento indisponível", textAlign = TextAlign.Center)
+                Button(onClick = { retry += 1 }) { Text("Tentar novamente") }
+            }
         }
     }
 }

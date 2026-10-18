@@ -18,10 +18,13 @@ class SessionManager(private val context: Context) {
         private val EMAIL_KEY = stringPreferencesKey("user_email")
     }
 
+    @Volatile
     var currentToken: String? = null
         private set
+    @Volatile
     var currentRole: String? = null
         private set
+    @Volatile
     var currentEmail: String? = null
         private set
 
@@ -30,14 +33,14 @@ class SessionManager(private val context: Context) {
     val email: Flow<String?> = context.dataStore.data.map { it[EMAIL_KEY] }
 
     suspend fun saveSession(token: String, role: String, email: String) {
-        currentToken = token
-        currentRole = role
-        currentEmail = email
         context.dataStore.edit {
             it[TOKEN_KEY] = token
             it[ROLE_KEY] = role
             it[EMAIL_KEY] = email
         }
+        currentToken = token
+        currentRole = role
+        currentEmail = email
     }
 
     suspend fun restoreSession() {

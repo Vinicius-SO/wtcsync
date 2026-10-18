@@ -52,16 +52,26 @@ fun EntryScreen(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.data != null) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
                 val idToken = account.idToken
                 if (idToken.isNullOrBlank()) Toast.makeText(context, "Token Google indisponível.", Toast.LENGTH_LONG).show()
                 else viewModel.loginWithGoogle(idToken)
-            } catch (e: Exception) {
-                Toast.makeText(context, "Falha no login com Google: ${e.message}", Toast.LENGTH_LONG).show()
+            } catch (e: ApiException) {
+                val message = when (e.statusCode) {
+                    12501 -> "Login Google cancelado."
+                    10 -> "Login Google não configurado para a assinatura deste APK. Verifique o SHA no Firebase."
+                    7 -> "Sem conexão para acessar sua conta Google."
+                    else -> "Falha no login Google (código ${e.statusCode})."
+                }
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            } catch (_: Exception) {
+                Toast.makeText(context, "Não foi possível acessar a conta Google.", Toast.LENGTH_LONG).show()
             }
+        } else {
+            Toast.makeText(context, "Login Google cancelado ou indisponível.", Toast.LENGTH_SHORT).show()
         }
     }
 

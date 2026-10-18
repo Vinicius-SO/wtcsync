@@ -13,9 +13,10 @@ import java.util.concurrent.TimeUnit
 class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val token = sessionManager.currentToken
-        val request = if (token != null) {
+        val request = if (token != null && chain.request().header("Authorization") == null &&
+            chain.request().url.encodedPath !in setOf("/api/auth/login", "/api/auth/google", "/api/auth/register")) {
             chain.request().newBuilder()
-                .addHeader("Authorization", "Bearer $token")
+                .header("Authorization", "Bearer $token")
                 .build()
         } else {
             chain.request()

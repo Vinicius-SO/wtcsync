@@ -109,7 +109,11 @@ fun Navigation(navController: NavHostController) {
         composable("home") {
             HomeScreen(
                 navController = navController,
-                userRole = role
+                userRole = role,
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate("entry") { popUpTo("home") { inclusive = true } }
+                }
             )
         }
         composable(
@@ -119,6 +123,7 @@ fun Navigation(navController: NavHostController) {
                 navArgument("contactName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
+            if (role != UserRole.OPERATOR && role != UserRole.ATENDENTE) { AccessDeniedScreen(navController); return@composable }
             val clienteId = backStackEntry.arguments?.getString("clienteId") ?: ""
             val contactName = backStackEntry.arguments?.getString("contactName") ?: "Contato"
             MessageScreen(
@@ -128,6 +133,7 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable("campaigns") {
+            if (role != UserRole.OPERATOR) { AccessDeniedScreen(navController); return@composable }
             val listViewModel: CampaignListViewModel = viewModel(
                 factory = CampaignListViewModelFactory(application)
             )
@@ -142,6 +148,7 @@ fun Navigation(navController: NavHostController) {
             route = "campaigns/{id}",
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
+            if (role != UserRole.OPERATOR) { AccessDeniedScreen(navController); return@composable }
             val id = backStackEntry.arguments?.getString("id") ?: ""
             val detailViewModel: CampaignDetailViewModel = viewModel(
                 factory = CampaignDetailViewModelFactory(application, id)
@@ -153,6 +160,7 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable("campaigns/create") {
+            if (role != UserRole.OPERATOR) { AccessDeniedScreen(navController); return@composable }
             val createViewModel: CreateCampaignViewModel = viewModel(
                 factory = CreateCampaignViewModelFactory(application)
             )
@@ -167,6 +175,7 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable("clientes/novo") {
+            if (role != UserRole.OPERATOR && role != UserRole.ATENDENTE) { AccessDeniedScreen(navController); return@composable }
             ClientFormScreen(
                 clienteId = null,
                 onSave = { navController.popBackStack() },
@@ -177,6 +186,7 @@ fun Navigation(navController: NavHostController) {
             route = "clientes/{id}/editar",
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStack ->
+            if (role != UserRole.OPERATOR && role != UserRole.ATENDENTE) { AccessDeniedScreen(navController); return@composable }
             ClientFormScreen(
                 clienteId = backStack.arguments?.getString("id"),
                 onSave = { navController.popBackStack() },
@@ -184,6 +194,7 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable("segments/create") {
+            if (role != UserRole.OPERATOR) { AccessDeniedScreen(navController); return@composable }
             val createViewModel: CreateSegmentViewModel = viewModel(
                 factory = CreateSegmentViewModelFactory(application)
             )
@@ -199,17 +210,25 @@ fun Navigation(navController: NavHostController) {
 @Composable
 private fun HomeScreen(
     navController: NavHostController,
-    userRole: UserRole?
+    userRole: UserRole?,
+    onLogout: () -> Unit
 ) {
+    if (userRole == null) {
+        Column { Text("Sessão indisponível"); Button(onClick = onLogout) { Text("Entrar novamente") } }
+        return
+    }
     // O cliente possui um único canal de atendimento, sem CRM ou lista de conversas.
     if (userRole == UserRole.CLIENTE) {
-        ClientSupportHome()
+        Column(Modifier.fillMaxSize()) {
+            AccountBar("Cliente", onLogout)
+            Box(Modifier.weight(1f)) { ClientSupportHome() }
+        }
         return
     }
     val availableTabs = if (userRole == UserRole.OPERATOR) {
         BottomNavTab.entries
     } else {
-        BottomNavTab.entries.filter { it != BottomNavTab.CAMPANHAS }
+        listOf(BottomNavTab.CHAT, BottomNavTab.CLIENTES)
     }
 
     var selectedTab by rememberSaveable { mutableStateOf(BottomNavTab.CHAT) }
@@ -219,6 +238,7 @@ private fun HomeScreen(
     }
 
     Scaffold(
+        topBar = { AccountBar(if (userRole == UserRole.OPERATOR) "Operador" else "Atendente", onLogout) },
         bottomBar = {
             BottomNavBar(
                 tabs = availableTabs,
@@ -307,13 +327,7 @@ private fun ClientSupportHome() {
             if (email.isNullOrBlank()) {
                 error = "Sua sessão não está disponível. Entre novamente."
             } else {
-                val client = app.apiService.clientApi.getClients()
-                    .firstOrNull { it.email.equals(email, ignoreCase = true) }
-                if (client == null) {
-                    error = "Não foi possível localizar seu atendimento. Contate o suporte."
-                } else {
-                    clientId = client.id
-                }
+                clientId = app.apiService.clientApi.getMyClient().id
             }
         } catch (_: Exception) {
             error = "Não foi possível carregar o atendimento. Verifique sua conexão."
@@ -333,6 +347,28 @@ private fun ClientSupportHome() {
         )
         else -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
             Text(error ?: "Atendimento indisponível", textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+private fun AccountBar(label: String, onLogout: () -> Unit) {
+    androidx.compose.foundation.layout.Row(
+        Modifier.padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, modifier = Modifier.weight(1f))
+        androidx.compose.material3.TextButton(onClick = onLogout) { Text("Sair") }
+    }
+}
+
+@Composable
+private fun AccessDeniedScreen(navController: NavHostController) {
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+        Text("Seu perfil não tem acesso a esta tela.")
+        Button(onClick = { navController.navigate("home") { popUpTo("home") { inclusive = true } } }) {
+            Text("Voltar ao início")
         }
     }
 }

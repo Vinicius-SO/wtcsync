@@ -71,7 +71,9 @@ class AuthViewModel(
     fun logout() {
         authJob?.cancel()
         restoreJob.cancel()
-        viewModelScope.launch {
+        _currentRole.value = null
+        _userState.value = null
+        authJob = viewModelScope.launch {
             sessionManager?.clear()
             repository.signOutFirebase()
             _currentRole.value = null

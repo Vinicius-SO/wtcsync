@@ -11,6 +11,9 @@ import retrofit2.http.Path
 
 interface ClientApi {
 
+    @GET("api/clients/me")
+    suspend fun getMyClient(): ClientDto
+
     @GET("api/clients")
     suspend fun getClients(): List<ClientDto>
 

@@ -91,7 +91,7 @@ class AuthRepository(
             val response = api.login(LoginRequest(email, password))
             val decodedRole = manager.decodeRoleFromJwt(response.token)
             val role = decodedRole?.takeIf { it.isNotBlank() }
-                ?: inferRoleFromEmail(response.email)
+                ?: "CLIENTE"
             val uid = extractSubjectFromJwt(response.token) ?: response.email
             val userRole = when (role.uppercase()) {
                 "OPERATOR" -> UserRole.OPERATOR
@@ -133,13 +133,6 @@ class AuthRepository(
         } catch (e: Exception) {
             Log.e(TAG, "Erro no login via API", e)
             Resource.Error(e.message ?: "Erro ao fazer login via API")
-        }
-    }
-
-    private fun inferRoleFromEmail(email: String): String {
-        return when {
-            email.contains("admin") -> "OPERATOR"
-            else -> "CLIENTE"
         }
     }
 

@@ -8,5 +8,5 @@ data class LoginRequest(
 data class LoginResponse(
     val token: String,
     val email: String,
-    val expiresIn: String
+    val expiresIn: Long
 )

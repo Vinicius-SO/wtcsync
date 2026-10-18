@@ -83,57 +83,38 @@ class AuthRepository(
         }
     }
 
-    suspend fun loginWithApi(email: String, password: String): Resource<User> {
+    private suspend fun establishSession(response: br.com.fiap.wtcsync.data.remote.dto.LoginResponse): Resource<User> {
+        val api = authApi ?: return Resource.Error("API não configurada")
+        val manager = sessionManager ?: return Resource.Error("Sessão indisponível")
+        if (response.token.isBlank() || response.email.isBlank()) return Resource.Error("Resposta inválida da API")
+        manager.saveSession(response.token, "CLIENTE", response.email)
         return try {
-            val api = authApi ?: return Resource.Error("API não configurada")
-            val manager = sessionManager ?: return Resource.Error("SessionManager não configurado")
-
-            val response = api.login(LoginRequest(email, password))
-            val decodedRole = manager.decodeRoleFromJwt(response.token)
-            val role = decodedRole?.takeIf { it.isNotBlank() }
-                ?: "CLIENTE"
-            val uid = extractSubjectFromJwt(response.token) ?: response.email
-            val userRole = when (role.uppercase()) {
-                "OPERATOR" -> UserRole.OPERATOR
-                "ATENDENTE" -> UserRole.ATENDENTE
-                else -> UserRole.CLIENTE
+            val profile = api.me()
+            val roleName = profile["role"]?.uppercase() ?: ""
+            val role = when (roleName) {
+                "ADMIN", "OPERATOR", "ROLE_ADMIN", "ROLE_OPERATOR" -> UserRole.OPERATOR
+                "ATENDENTE", "ROLE_ATENDENTE" -> UserRole.ATENDENTE
+                "CLIENT", "CLIENTE", "ROLE_CLIENT", "ROLE_CLIENTE" -> UserRole.CLIENTE
+                else -> {
+                    manager.clear()
+                    return Resource.Error("Perfil não reconhecido pela API: $roleName")
+                }
             }
-            Log.d(TAG, "Role decodificada: '$decodedRole' → final: '$role' → UserRole: $userRole")
-
-            manager.saveSession(
-                token = response.token,
-                role = role,
-                email = response.email
-            )
-
-            val user = User(
-                uid = uid,
-                name = response.email,
-                email = response.email,
-                role = userRole
-            )
-
-            Log.d(TAG, "Login API bem-sucedido. Role: $role")
-            Resource.Success(user)
-        } catch (e: retrofit2.HttpException) {
-            Log.e(TAG, "Erro HTTP no login via API", e)
-            val message = when (e.code()) {
-                401 -> "Credenciais inválidas"
-                403 -> "Acesso não autorizado"
-                500 -> "Erro interno do servidor. Tente novamente."
-                else -> "Erro na conexão (${e.code()})"
-            }
-            Resource.Error(message)
-        } catch (e: java.net.UnknownHostException) {
-            Log.e(TAG, "Erro de rede no login via API", e)
-            Resource.Error("Sem conexão com a internet")
-        } catch (e: java.net.SocketTimeoutException) {
-            Log.e(TAG, "Timeout no login via API", e)
-            Resource.Error("O servidor demorou a responder. Aguarde alguns instantes e tente novamente.")
+            manager.saveSession(response.token, role.name, response.email)
+            Resource.Success(User(response.email, response.email, response.email, role))
         } catch (e: Exception) {
-            Log.e(TAG, "Erro no login via API", e)
-            Resource.Error(e.message ?: "Erro ao fazer login via API")
+            manager.clear()
+            Resource.Error("Login autenticado, mas não foi possível confirmar seu perfil.")
         }
+    }
+
+    suspend fun loginWithApi(email: String, password: String): Resource<User> = try {
+        val api = authApi ?: return Resource.Error("API não configurada")
+        establishSession(api.login(LoginRequest(email, password)))
+    } catch (e: retrofit2.HttpException) {
+        Resource.Error(if (e.code() == 401) "E-mail ou senha inválidos." else "Falha HTTP no login (${e.code()}).")
+    } catch (e: Exception) {
+        Resource.Error("Não foi possível conectar à API: ${e.javaClass.simpleName}")
     }
 
     private fun extractSubjectFromJwt(token: String): String? {
@@ -146,17 +127,22 @@ class AuthRepository(
         }
     }
 
-    suspend fun loginWithGoogle(idToken: String): Resource<User> {
-        return try {
-            val credential = GoogleAuthProvider.getCredential(idToken, null)
-            val result = firebaseAuth.signInWithCredential(credential).await()
-            if (result.user == null) return Resource.Error("Não foi possível autenticar com Google.")
-            // O backend usa JWT próprio. Firebase Auth sozinho não autoriza acesso
-            // aos endpoints REST. Não navegar com uma sessão incompleta.
-            Resource.Error("Google autenticado, mas a vinculação com a API ainda não está disponível. Use e-mail e senha.")
-        } catch (e: Exception) {
-            Log.e(TAG, "Falha de autenticação Google", e)
-            Resource.Error("Não foi possível autenticar com Google. Verifique a configuração OAuth do aplicativo.")
-        }
+    suspend fun loginWithGoogle(idToken: String): Resource<User> = try {
+        val firebaseUser = firebaseAuth.signInWithCredential(
+            GoogleAuthProvider.getCredential(idToken, null)
+        ).await().user ?: return Resource.Error("Conta Google indisponível")
+        val googleToken = firebaseUser.getIdToken(true).await().token
+            ?: return Resource.Error("Não foi possível obter o token do Firebase")
+        val api = authApi ?: return Resource.Error("API não configurada")
+        establishSession(api.loginGoogle(mapOf("idToken" to googleToken)))
+    } catch (e: retrofit2.HttpException) {
+        Resource.Error(when (e.code()) {
+            403 -> "Conta Google não cadastrada na API. Cadastre-se primeiro."
+            401 -> "Não foi possível validar a conta Google."
+            404 -> "O servidor ainda não oferece login Google. Atualize a API."
+            else -> "Erro HTTP no login Google (${e.code()})."
+        })
+    } catch (e: Exception) {
+        Resource.Error("Falha no Google: ${e.javaClass.simpleName}")
     }
 }

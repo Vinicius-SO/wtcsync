@@ -108,13 +108,16 @@ class AuthRepository(
         }
     }
 
-    suspend fun loginWithApi(email: String, password: String): Resource<User> = try {
+    suspend fun loginWithApi(email: String, password: String): Resource<User> {
+        return try {
         val api = authApi ?: return Resource.Error("API não configurada")
         establishSession(api.login(LoginRequest(email, password)))
     } catch (e: retrofit2.HttpException) {
         Resource.Error(if (e.code() == 401) "E-mail ou senha inválidos." else "Falha HTTP no login (${e.code()}).")
     } catch (e: Exception) {
         Resource.Error("Não foi possível conectar à API: ${e.javaClass.simpleName}")
+    }
+
     }
 
     private fun extractSubjectFromJwt(token: String): String? {
@@ -127,7 +130,8 @@ class AuthRepository(
         }
     }
 
-    suspend fun loginWithGoogle(idToken: String): Resource<User> = try {
+    suspend fun loginWithGoogle(idToken: String): Resource<User> {
+        return try {
         val firebaseUser = firebaseAuth.signInWithCredential(
             GoogleAuthProvider.getCredential(idToken, null)
         ).await().user ?: return Resource.Error("Conta Google indisponível")
@@ -144,5 +148,6 @@ class AuthRepository(
         })
     } catch (e: Exception) {
         Resource.Error("Falha no Google: ${e.javaClass.simpleName}")
+    }
     }
 }

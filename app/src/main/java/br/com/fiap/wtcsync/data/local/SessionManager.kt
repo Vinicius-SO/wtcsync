@@ -45,6 +45,7 @@ class SessionManager(private val context: Context) {
         currentToken = prefs[TOKEN_KEY]
         currentRole = prefs[ROLE_KEY]
         currentEmail = prefs[EMAIL_KEY]
+        if (currentToken != null && isExpired(currentToken!!)) clear()
     }
 
     suspend fun clear() {
@@ -55,6 +56,12 @@ class SessionManager(private val context: Context) {
             it.clear()
         }
     }
+
+    fun isExpired(token: String): Boolean = try {
+        val payload = String(android.util.Base64.decode(token.split(".")[1], android.util.Base64.URL_SAFE))
+        val exp = org.json.JSONObject(payload).optLong("exp", 0L)
+        exp <= 0L || exp <= System.currentTimeMillis() / 1000
+    } catch (_: Exception) { true }
 
     fun decodeRoleFromJwt(token: String): String? {
         return try {
@@ -68,7 +75,7 @@ class SessionManager(private val context: Context) {
                     ?.takeIf { it.isNotBlank() }
                 ?: json.optString("user_role")
                     .takeIf { it.isNotBlank() }
-            android.util.Log.d("SessionManager", "JWT payload: $decoded")
+            // Do not log decoded JWT
             role
         } catch (e: Exception) {
             android.util.Log.e("SessionManager", "Erro ao decodificar JWT", e)

@@ -3,6 +3,7 @@ name: Android Debug APK
 on:
   push:
     branches:
+      - main
       - feature/ux-role-navigation
       - feature/unified-auth
   workflow_dispatch:
@@ -75,14 +76,25 @@ jobs:
               print('Dummy credentials POST /api/auth/login:',type(e).__name__,str(e)[:180])
           PY
 
+      - name: Keep the debug signing identity stable
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: wtcsync-debug-signing-v1
+
       - name: Run unit tests and build debug APK
         run: ./gradlew :app:testDebugUnitTest :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Export APK signing fingerprints
+        run: ./gradlew :app:signingReport --no-daemon > app/build/outputs/apk/debug/signing-report.txt
 
       - name: Upload debug APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: WTCSync-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/signing-report.txt
           retention-days: 14
           if-no-files-found: error

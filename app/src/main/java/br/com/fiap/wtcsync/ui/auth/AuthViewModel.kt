@@ -35,7 +35,7 @@ class AuthViewModel(
             sessionManager?.let { manager ->
                 manager.restoreSession()
                 val role = manager.currentRole
-                _currentRole.value = when (role?.uppercase()) {
+                _currentRole.value = if (manager.currentToken == null) null else when (role?.uppercase()) {
                     "OPERATOR" -> UserRole.OPERATOR
                     "ATENDENTE" -> UserRole.ATENDENTE
                     else -> UserRole.CLIENTE
@@ -86,7 +86,9 @@ class AuthViewModel(
             try {
                 Log.d(TAG, "Iniciando login com Google")
                 _userState.value = Resource.Loading()
-                val result = repository.loginWithGoogle(idToken)
+                val result = withTimeoutOrNull(45_000L) { repository.loginWithGoogle(idToken) }
+                    ?: Resource.Error("Tempo limite excedido no login Google.")
+                if (result is Resource.Success) _currentRole.value = result.data?.role
                 _userState.value = result
                 Log.d(TAG, "Login Google resultado: ${result.javaClass.simpleName}")
             } catch (e: Exception) {

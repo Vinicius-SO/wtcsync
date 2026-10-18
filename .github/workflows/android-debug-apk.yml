@@ -57,6 +57,8 @@ jobs:
                               doc=json.loads(body)
                               print('OpenAPI paths:', sorted(doc.get('paths',{}).keys()))
                               print('Login operations:', json.dumps(doc.get('paths',{}).get('/api/auth/login',{}),ensure_ascii=False)[:2500])
+                              print('Firebase exchange:', json.dumps(doc.get('paths',{}).get('/api/auth/firebase-token',{}),ensure_ascii=False)[:2500])
+                              print('Auth schemas:', json.dumps({k:v for k,v in doc.get('components',{}).get('schemas',{}).items() if 'Firebase' in k or 'AuthResponse' in k},ensure_ascii=False)[:2500])
                           except Exception as e: print('OpenAPI parse:',type(e).__name__)
               except urllib.error.HTTPError as e:
                   print(path,'GET',e.code)

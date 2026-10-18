@@ -43,11 +43,10 @@ val nunitoFamily = FontFamily(
 fun EntryScreen(
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String) -> Unit,
+    viewModel: AuthViewModel
 ) {
     val context = LocalContext.current
-    val app = context.applicationContext as android.app.Application
-    val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(app))
     val userState by viewModel.userState.collectAsState()
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
@@ -57,9 +56,10 @@ fun EntryScreen(
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
-                val idToken = account.idToken!!
-                viewModel.loginWithGoogle(idToken)
-            } catch (e: ApiException) {
+                val idToken = account.idToken
+                if (idToken.isNullOrBlank()) Toast.makeText(context, "Token Google indisponível.", Toast.LENGTH_LONG).show()
+                else viewModel.loginWithGoogle(idToken)
+            } catch (e: Exception) {
                 Toast.makeText(context, "Falha no login com Google: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
@@ -70,7 +70,6 @@ fun EntryScreen(
         when (val state = userState) {
             is Resource.Success -> {
                 Toast.makeText(context, "Login bem-sucedido! Bem-vindo ${state.data?.email}", Toast.LENGTH_SHORT).show()
-                viewModel.resetState() // Reseta o estado após sucesso
                 onLoginSuccess(state.data?.email ?: "")
             }
             is Resource.Error -> {

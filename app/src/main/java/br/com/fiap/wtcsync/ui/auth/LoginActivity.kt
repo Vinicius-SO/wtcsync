@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.wtcsync.R
 import br.com.fiap.wtcsync.data.model.User
-import br.com.fiap.wtcsync.util.NetworkUtils
 import br.com.fiap.wtcsync.util.Resource
 
 
@@ -141,11 +140,7 @@ fun LoginScreen(
             Button(
                 enabled = userState !is Resource.Loading,
                 onClick = {
-                    if (NetworkUtils.isConnected(context)) {
-                        viewModel.login(email, senha)
-                    } else {
-                        Toast.makeText(context, "Sem conexão com a internet", Toast.LENGTH_SHORT).show()
-                    }
+                    viewModel.login(email.trim(), senha)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary), // Cor Amarela
                 modifier = Modifier

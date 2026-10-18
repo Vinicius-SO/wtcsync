@@ -74,6 +74,7 @@ fun Navigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "entry") {
         composable("entry") {
             EntryScreen(
+                viewModel = authViewModel,
                 onLoginClick = { navController.navigate("login") },
                 onRegisterClick = { navController.navigate("register") },
                 onLoginSuccess = {

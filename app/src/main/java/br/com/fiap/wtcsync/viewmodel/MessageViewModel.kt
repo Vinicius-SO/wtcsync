@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 
@@ -43,6 +45,12 @@ class MessageViewModel(
     init {
         loadConversation()
         connectWebSocket()
+        viewModelScope.launch {
+            while (isActive) {
+                delay(12_000L)
+                loadConversation(silent = true)
+            }
+        }
     }
 
     // Carrega apenas a conversa entre o operador logado e o cliente

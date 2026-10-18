@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/ux-role-navigation
+      - feature/unified-auth
   workflow_dispatch:
 
 permissions:

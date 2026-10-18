@@ -137,60 +137,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo Role (Picker)
-            Text(
-                text = "Tipo de Usuário",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = {
-                    if (userState !is Resource.Loading) {
-                        expanded = !expanded
-                    }
-                }
-            ) {
-                OutlinedTextField(
-                    value = if (role == UserRole.CLIENTE) "Cliente" else "Atendente",
-                    onValueChange = {},
-                    readOnly = true,
-                    enabled = userState !is Resource.Loading,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.LightGray,
-                        unfocusedBorderColor = Color.LightGray,
-                        focusedTextColor = BlackPrimary,
-                        unfocusedTextColor = BlackPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Cliente") },
-                        onClick = {
-                            role = UserRole.CLIENTE
-                            expanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Atendente") },
-                        onClick = {
-                            role = UserRole.ATENDENTE
-                            expanded = false
-                        }
-                    )
-                }
-            }
-
+            Text("Cadastro de cliente. O acesso de operador é definido pela administração.", color = Color.Gray)
             Spacer(modifier = Modifier.height(16.dp))
 
             // Campo Email
@@ -306,7 +253,7 @@ fun RegisterScreen(
                             Toast.makeText(context, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
-                            viewModel.register(email, password, name, role)
+                            viewModel.register(email, password, name, UserRole.CLIENTE)
                         }
                     }
                 },

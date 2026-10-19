@@ -72,7 +72,8 @@ fun ChatListScreen(
             clientApi = app.apiService.clientApi,
             messageApi = app.apiService.messageApi,
             sessionManager = app.sessionManager,
-            context = app
+            context = app,
+            supportApi = app.apiService.supportApi
         )
     )
     val uiState by viewModel.uiState.collectAsState()
@@ -80,6 +81,8 @@ fun ChatListScreen(
     var selectedPill by remember { mutableStateOf("Todas") }
 
     val displayedClients = when (selectedPill) {
+        "Aguardando" -> uiState.filteredClients.filter { client -> uiState.tickets.any { it.customerId == client.id && it.assignedTo == null } }
+        "Meus" -> uiState.filteredClients.filter { client -> uiState.tickets.any { it.customerId == client.id && it.assignedTo == app.sessionManager.currentEmail } }
         "Não lidas" -> uiState.filteredClients.filter { (uiState.unreadCounts[it.id] ?: 0) > 0 }
         else        -> uiState.filteredClients
     }
@@ -110,7 +113,7 @@ fun ChatListScreen(
                     }
                 }
                 Column {
-                    Text("Lista de Chats (Operador)", fontSize = 11.sp, color = TextSecondary)
+                    Text(if (uiState.connected) "Fila · tempo real" else "Fila · reconectando", fontSize = 11.sp, color = TextSecondary)
                     Text("Mensagens", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 }
             }
@@ -158,7 +161,7 @@ fun ChatListScreen(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Todas", "Não lidas", "Grupos").forEach { pill ->
+            listOf("Todas", "Aguardando", "Meus").forEach { pill ->
                 ChatFilterPill(label = pill, isActive = selectedPill == pill, onClick = { selectedPill = pill })
             }
         }
@@ -178,13 +181,13 @@ fun ChatListScreen(
                     items(displayedClients, key = { it.id }) { cliente ->
                         ChatConversationItem(
                             cliente = cliente,
-                            lastMessage = uiState.lastMessages[cliente.id] ?: "",
+                            lastMessage = (uiState.tickets.firstOrNull { it.customerId == cliente.id }?.assignedTo?.let { "Em atendimento · $it" } ?: "Aguardando atendimento") + " · " + (uiState.lastMessages[cliente.id] ?: ""),
                             unreadCount = uiState.unreadCounts[cliente.id] ?: 0,
                             onClick = { onChatClick(cliente.id, cliente.name) }
                         )
                         Divider(color = ListBorderLight, thickness = 1.dp)
                     }
-                    item { PerformanceCard() }
+
                 }
             }
         }
@@ -224,7 +227,7 @@ private fun ChatConversationItem(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ClientAvatar(name = cliente.name, size = 44.dp, showOnlineIndicator = true)
+        ClientAvatar(name = cliente.name, size = 44.dp, showOnlineIndicator = false)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(

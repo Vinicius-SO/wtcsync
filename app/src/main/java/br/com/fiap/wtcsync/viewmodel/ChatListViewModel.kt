@@ -22,6 +22,8 @@ data class ChatListUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val clients: List<ClientDto> = emptyList(),
+    val tickets: List<br.com.fiap.wtcsync.data.remote.SupportTicket> = emptyList(),
+    val connected: Boolean = false,
     val searchQuery: String = "",
     val unreadCounts: Map<String, Int> = emptyMap(),
     val lastMessages: Map<String, String> = emptyMap()
@@ -35,7 +37,8 @@ class ChatListViewModel(
     private val clientApi: ClientApi,
     private val messageApi: MessageApi,
     private val sessionManager: SessionManager,
-    private val context: Context
+    private val context: Context,
+    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatListUiState())
@@ -47,15 +50,23 @@ class ChatListViewModel(
     init {
         loadClients()
         startPolling()
+        viewModelScope.launch {
+            br.com.fiap.wtcsync.data.remote.SupportSocket(sessionManager).listen(
+                { connected -> _uiState.update { it.copy(connected = connected) } },
+                { loadClients(silent = true) }
+            )
+        }
     }
 
-    fun loadClients() {
+    fun loadClients(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val clients = clientApi.getClients()
-                _uiState.update { it.copy(clients = clients, isLoading = false) }
+                val tickets = supportApi.queue()
+                val clients = tickets.map { ticket -> ClientDto(ticket.customerId, ticket.customerName ?: "Cliente", "", null, null, null, null, null) }
+                _uiState.update { it.copy(clients = clients, tickets = tickets, isLoading = false, error = null) }
                 refreshUnreadCounts(clients)
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -66,8 +77,7 @@ class ChatListViewModel(
         viewModelScope.launch {
             while (true) {
                 delay(5000)
-                val clients = _uiState.value.clients
-                if (clients.isNotEmpty()) refreshUnreadCounts(clients)
+                loadClients(silent = true)
             }
         }
     }
@@ -87,9 +97,10 @@ class ChatListViewModel(
                             customerId = client.id
                         )
                         // "received" são as que vieram do cliente (não do operador)
-                        val received = messages.filter { it.senderId != currentEmail }
+                        val customerEmail = _uiState.value.tickets.firstOrNull { it.customerId == client.id }?.customerEmail
+                        val received = messages.filter { it.senderId == customerEmail }
 
-                        newCounts[client.id] = received.count { it.status != "ENTREGUE" }
+                        newCounts[client.id] = received.count { it.status == "ENVIADO" }
                         newLastMessages[client.id] = messages
                             .maxByOrNull { it.createdAt ?: "" }?.text ?: ""
 
@@ -121,9 +132,10 @@ class ChatListViewModelFactory(
     private val clientApi: ClientApi,
     private val messageApi: MessageApi,
     private val sessionManager: SessionManager,
-    private val context: Context
+    private val context: Context,
+    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        ChatListViewModel(clientApi, messageApi, sessionManager, context) as T
+        ChatListViewModel(clientApi, messageApi, sessionManager, context, supportApi) as T
 }

@@ -75,7 +75,7 @@ fun MessageScreen(
     val app = LocalContext.current.applicationContext as WtcSyncApp
     val viewModel: MessageViewModel = viewModel(
         key = clienteId,
-        factory = MessageViewModelFactory(clienteId, app.apiService.messageApi, app.sessionManager)
+        factory = MessageViewModelFactory(clienteId, app.apiService.messageApi, app.sessionManager, app.apiService.supportApi)
     )
     val uiState by viewModel.uiState.collectAsState()
     val currentEmail = app.sessionManager.currentEmail ?: ""
@@ -87,14 +87,29 @@ fun MessageScreen(
     Scaffold(
         containerColor = BackgroundCream,
         topBar = {
+            Column {
             ChatHeader(
                 contactName = contactName,
                 onBackClick = { navController.popBackStack() },
-                showBackButton = showBackButton
+                showBackButton = showBackButton,
+                connectionLabel = if (uiState.connected) "Atualização em tempo real" else "Reconectando · atualização periódica"
             )
+            Row(Modifier.fillMaxWidth().background(HeaderBg).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                val owner = uiState.ticket?.assignedTo
+                Text(if (owner == null) "Aguardando atendimento" else if (viewModel.isStaff) "Responsável: $owner" else "Em atendimento",
+                    modifier = Modifier.weight(1f), color = TextSecondary, fontSize = 12.sp)
+                if (viewModel.isStaff && (owner == null || owner == currentEmail)) {
+                    androidx.compose.material3.TextButton(
+                        enabled = !uiState.changingAssignment && !uiState.isSending,
+                        onClick = { viewModel.changeAssignment(release = owner == currentEmail) }
+                    ) { Text(if (owner == currentEmail) "Devolver à fila" else "Assumir atendimento") }
+                }
+            }
+            }
         },
         bottomBar = {
-            ChatInputBar(
+            if (viewModel.canReply) ChatInputBar(
                 text = messageText,
                 onTextChange = { messageText = it },
                 isSending = uiState.isSending,
@@ -161,7 +176,7 @@ fun MessageScreen(
 }
 
 @Composable
-private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean) {
+private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean, connectionLabel: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -181,7 +196,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
                 modifier = Modifier.size(22.dp)
             )
         }
-        ClientAvatar(name = contactName, size = 38.dp, showOnlineIndicator = true)
+        ClientAvatar(name = contactName, size = 38.dp, showOnlineIndicator = false)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -200,7 +215,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
                         .background(Color(0xFF4CAF50), CircleShape)
                 )
                 Spacer(Modifier.width(4.dp))
-                Text("Online", fontSize = 11.sp, color = TextSecondary)
+                Text(connectionLabel, fontSize = 11.sp, color = TextSecondary)
             }
         }
         IconButton(onClick = {}) {

@@ -16,6 +16,8 @@ object NotificationHelper {
     }
     @Synchronized
     fun showMessageNotification(context: Context, recipient: String, customerId: String, messageId: String) {
+        val session = (context.applicationContext as br.com.fiap.wtcsync.WtcSyncApp).sessionManager
+        if (!session.notificationsAllowed || (session.currentEmail != null && !recipient.equals(session.currentEmail, ignoreCase = true))) return
         val prefs = context.getSharedPreferences("chat_notifications", Context.MODE_PRIVATE)
         val receipt = "$recipient:$messageId"
         if (prefs.getStringSet("seen", emptySet()).orEmpty().contains(receipt)) return
@@ -46,6 +48,7 @@ object NotificationHelper {
     fun clearConversation(context: Context, email: String, customerId: String) {
         NotificationManagerCompat.from(context).cancel("chat:$email:$customerId", 1)
     }
+    @Synchronized
     fun clearAll(context: Context) { NotificationManagerCompat.from(context).cancelAll() }
     fun target(intent: Intent?): ChatNotificationTarget? {
         val recipient = intent?.getStringExtra("chatRecipient") ?: return null

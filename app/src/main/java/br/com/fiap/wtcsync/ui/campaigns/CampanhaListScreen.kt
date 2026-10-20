@@ -605,5 +605,3 @@ private fun DrawShimmerLine(brush: Brush) {
             .background(brush)
     )
 }
-
-

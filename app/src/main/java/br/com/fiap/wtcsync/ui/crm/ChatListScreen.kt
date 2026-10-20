@@ -200,5 +200,3 @@ private fun ChatConversationItem(
         }
     }
 }
-
-

@@ -620,5 +620,3 @@ private fun EmptyState(onRetry: () -> Unit) {
 private fun ErrorState(message: String, onRetry: () -> Unit) {
     WtcStatePanel("Não foi possível carregar as campanhas", message, onRetry = onRetry)
 }
-
-

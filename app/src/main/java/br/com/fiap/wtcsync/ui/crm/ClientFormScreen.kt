@@ -68,7 +68,8 @@ import br.com.fiap.wtcsync.viewmodel.ClientFormViewModelFactory
 fun ClientFormScreen(
     clienteId: String?,
     onSave: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    fromConversation: Boolean = false
 ) {
     val app = LocalContext.current.applicationContext as WtcSyncApp
     val viewModel: ClientFormViewModel = viewModel(
@@ -131,7 +132,7 @@ fun ClientFormScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "CANCELAR",
+                if (fromConversation) "VOLTAR À CONVERSA" else "CANCELAR",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextSecondary,

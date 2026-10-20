@@ -45,12 +45,14 @@ class ClientFormViewModel(
                         name = client.name,
                         email = client.email,
                         phone = client.phone ?: "",
-                        status = client.status ?: "Active",
+                        status = client.status?.replaceFirstChar { it.uppercase() } ?: "Active",
                         score = (client.score ?: 50).toFloat(),
                         tags = client.tags ?: emptyList(),
+                        notes = client.notes ?: "",
                         isLoading = false
                     )
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -72,6 +74,7 @@ class ClientFormViewModel(
 
     fun save() {
         val s = _uiState.value
+        if (s.isSaving || s.isLoading) return
         if (s.name.isBlank() || s.email.isBlank()) {
             _uiState.update { it.copy(error = "Nome e email são obrigatórios.") }
             return
@@ -80,8 +83,8 @@ class ClientFormViewModel(
             _uiState.update { it.copy(isSaving = true, error = null) }
             try {
                 val dto = CreateClientDto(
-                    name = s.name,
-                    email = s.email,
+                    name = s.name.trim(),
+                    email = s.email.trim(),
                     phone = s.phone.ifBlank { null },
                     status = s.status,
                     score = s.score.toInt(),
@@ -91,8 +94,15 @@ class ClientFormViewModel(
                 if (clienteId == null) clientApi.createClient(dto)
                 else clientApi.updateClient(clienteId, dto)
                 _uiState.update { it.copy(isSaving = false, saved = true) }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false, error = e.message) }
+                _uiState.update { it.copy(isSaving = false, error = when ((e as? retrofit2.HttpException)?.code()) {
+                    400 -> "Confira o nome, o e-mail e o score informado."
+                    401, 403 -> "Sua sessão não permite editar este cliente. Entre novamente."
+                    404 -> "Cliente não encontrado. Atualize a lista."
+                    409 -> "O e-mail já está vinculado a um cadastro ou é usado para acesso. Mantenha o e-mail original."
+                    else -> "Não foi possível salvar os dados. Tente novamente."
+                }) }
             }
         }
     }

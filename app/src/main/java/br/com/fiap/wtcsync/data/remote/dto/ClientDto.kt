@@ -8,7 +8,8 @@ data class ClientDto(
     val status: String?,
     val score: Int?,
     val tags: List<String>?,
-    val segmentId: String?
+    val segmentId: String?,
+    val notes: String? = null
 )
 
 data class ClientProfileDto(

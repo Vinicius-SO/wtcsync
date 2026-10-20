@@ -44,7 +44,7 @@ data class WtcPalette(
     val ListScheduleIcon: Color = Color(0xFF636262),
     val ListScheduleBg: Color = Color(0xFFE2DFDE),
     val ListPromoBg: Color = Color(0xFF1C1B1B),
-    val PlaceholderText: Color = Color(0xFF6B7280),
+    val PlaceholderText: Color = Color(0xFF606773),
     val ActionCardBg: Color = Color(0xFFF6F3F2),
     val AgendarBg: Color = Color(0xFF8AD6ED),
     val AgendarText: Color = Color(0xFF005E70),

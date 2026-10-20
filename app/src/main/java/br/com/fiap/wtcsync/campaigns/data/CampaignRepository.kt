@@ -9,6 +9,21 @@ import br.com.fiap.wtcsync.util.Resource
 
 class CampaignRepository(private val campaignApi: CampaignApi) {
 
+    suspend fun latestReceivedCampaign(): Resource<Campaign> {
+        return try {
+            val response = campaignApi.latestReceivedCampaign()
+            when {
+                response.code() == 204 -> Resource.Success(null)
+                response.isSuccessful && response.body() != null -> Resource.Success(response.body()!!.toDomain())
+                else -> Resource.Error("Não foi possível carregar sua campanha (${response.code()}). Tente novamente.")
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Resource.Error("Não foi possível carregar sua campanha. Verifique a conexão e tente novamente.")
+        }
+    }
+
     suspend fun listCampaigns(): Resource<List<Campaign>> {
         return try {
             val response = campaignApi.listCampaigns()

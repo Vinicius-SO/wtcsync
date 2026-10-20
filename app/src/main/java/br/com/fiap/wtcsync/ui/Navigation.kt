@@ -220,16 +220,29 @@ private fun HomeScreen(
         Column { Text("Sessão indisponível"); WtcButton(onClick = onLogout) { Text("Entrar novamente") } }
         return
     }
-    // O cliente possui um único canal de atendimento, sem CRM ou lista de conversas.
     if (userRole == UserRole.CLIENTE) {
-        Column(Modifier.fillMaxSize()) {
-            AccountBar("Cliente", onLogout)
-            Box(Modifier.weight(1f)) { ClientSupportHome() }
+        val tabs = listOf(BottomNavTab.CHAT, BottomNavTab.ULTIMA_CAMPANHA, BottomNavTab.MEU_PERFIL)
+        var clientTab by rememberSaveable { mutableStateOf(BottomNavTab.CHAT) }
+        val tabState = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+        Scaffold(
+            topBar = { AccountBar("Cliente", onLogout) },
+            bottomBar = { BottomNavBar(tabs, clientTab, { clientTab = it }) }
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                tabState.SaveableStateProvider(clientTab) {
+                    when (clientTab) {
+                        BottomNavTab.MEU_PERFIL -> br.com.fiap.wtcsync.ui.client.ClientProfileScreen()
+                        BottomNavTab.ULTIMA_CAMPANHA -> ClientCampaignScreen(
+                            navController.context.applicationContext as Application)
+                        else -> ClientSupportHome()
+                    }
+                }
+            }
         }
         return
     }
     val availableTabs = if (userRole == UserRole.OPERATOR) {
-        BottomNavTab.entries
+        listOf(BottomNavTab.CLIENTES, BottomNavTab.SEGMENTOS, BottomNavTab.CAMPANHAS, BottomNavTab.CHAT)
     } else {
         listOf(BottomNavTab.CHAT, BottomNavTab.CLIENTES)
     }
@@ -302,6 +315,7 @@ private fun HomeScreen(
                         else -> {}
                     }
                 }
+                BottomNavTab.MEU_PERFIL, BottomNavTab.ULTIMA_CAMPANHA -> Unit
                 BottomNavTab.CHAT -> ChatListScreen(
                     onChatClick = { id, name ->
                         navController.navigate(

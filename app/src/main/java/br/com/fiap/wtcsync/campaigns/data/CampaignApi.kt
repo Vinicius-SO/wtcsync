@@ -11,6 +11,9 @@ import retrofit2.http.Path
 
 interface CampaignApi {
 
+    @GET("api/campaigns/me/latest")
+    suspend fun latestReceivedCampaign(): retrofit2.Response<br.com.fiap.wtcsync.campaigns.data.dto.ReceivedCampaignDto>
+
     @GET("api/campaigns")
     suspend fun listCampaigns(): List<CampaignDto>
 

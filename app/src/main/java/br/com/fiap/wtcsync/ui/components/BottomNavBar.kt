@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Segment
@@ -44,7 +45,8 @@ enum class BottomNavTab(val icon: ImageVector, val label: String) {
     CAMPANHAS(Icons.Default.Campaign, "Campanhas"),
     CHAT(Icons.AutoMirrored.Filled.Chat, "Chat"),
     MEU_PERFIL(Icons.Default.Person, "Meu perfil"),
-    ULTIMA_CAMPANHA(Icons.Default.Campaign, "Campanha")
+    ULTIMA_CAMPANHA(Icons.Default.Campaign, "Campanha"),
+    OUTRAS(Icons.Default.MoreHoriz, "Outras")
 }
 
 @Composable
@@ -83,7 +85,8 @@ fun BottomNavBar(
                     BottomNavItem(
                         tab = tab,
                         isSelected = tab == selectedTab,
-                        onClick = { onTabSelected(tab) }
+                        onClick = { onTabSelected(tab) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -95,7 +98,8 @@ fun BottomNavBar(
 private fun BottomNavItem(
     tab: BottomNavTab,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val containerColor = if (isSelected) NavBarActiveFill else Color.Transparent
     val contentColor = if (isSelected) NavBarActive else NavBarInactive
@@ -103,6 +107,7 @@ private fun BottomNavItem(
 
     Surface(
         onClick = onClick,
+        modifier = modifier,
         shape = shape,
         color = containerColor,
         tonalElevation = if (isSelected) 2.dp else 0.dp,
@@ -110,7 +115,7 @@ private fun BottomNavItem(
         border = if (isSelected) BorderStroke(2.dp, NavBarBorder) else null
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -123,6 +128,8 @@ private fun BottomNavItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = tab.label.uppercase(),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = contentColor,

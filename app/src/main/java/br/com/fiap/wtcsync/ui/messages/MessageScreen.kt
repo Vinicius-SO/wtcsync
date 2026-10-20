@@ -51,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import br.com.fiap.wtcsync.theme.themedDrawBehind
@@ -104,7 +105,10 @@ fun MessageScreen(
         uiState.loadingSupportHistory, uiState.supportHistoryError,
         onRetry = { viewModel.loadSupportHistory() }, onDismiss = { showHistory = false })
     LaunchedEffect(uiState.deletedCount) {
-        if (uiState.deletedCount > lastDeletedCount) deletingId = null
+        if (uiState.deletedCount > lastDeletedCount) {
+            if (editingId == deletingId) editingId = null
+            deletingId = null
+        }
         lastDeletedCount = uiState.deletedCount
     }
     if (deletingId != null) {
@@ -119,17 +123,10 @@ fun MessageScreen(
         if (uiState.editedCount > lastEditedCount) editingId = null
         lastEditedCount = uiState.editedCount
     }
-    if (editingId != null) {
-        EditMessageDialog(
-            text = editingText,
-            onTextChange = { editingText = it },
-            saving = uiState.isEditing,
-            changed = editingText != originalText,
-            error = uiState.editError,
-            onDismiss = { editingId = null; viewModel.clearEditError() },
-            onSave = { editingId?.let { viewModel.editMessage(it, editingText) } }
-        )
+    val cancelEdit: () -> Unit = {
+        if (!uiState.isEditing) { editingId = null; viewModel.clearEditError() }
     }
+    androidx.activity.compose.BackHandler(enabled = editingId != null) { cancelEdit() }
     LaunchedEffect(uiState.queuedCount) {
         if (uiState.queuedCount > lastQueuedCount && messageText == uiState.lastQueuedText) messageText = ""
         lastQueuedCount = uiState.queuedCount
@@ -153,7 +150,7 @@ fun MessageScreen(
                     item.offset < listState.layoutInfo.viewportEndOffset
             }.mapNotNull { it.key as? String }.toSet()
         }.collect { ids ->
-            viewModel.markVisibleRead(ids, resumed && editingId == null && deletingId == null && !showHistory)
+            viewModel.markVisibleRead(ids, resumed && deletingId == null && !showHistory)
         }
     }
     DisposableEffect(resumed, clienteId, currentEmail) {
@@ -178,7 +175,7 @@ fun MessageScreen(
                 connectionLabel = if (uiState.connected) "Atualização em tempo real" else "Reconectando · atualização periódica"
             )
             SupportTicketBar(uiState.ticket, viewModel.isStaff, currentEmail,
-                busy = uiState.changingAssignment || uiState.isSending || uiState.isQueueing,
+                busy = uiState.changingAssignment || uiState.isSending || uiState.isQueueing || uiState.isEditing,
                 canClose = uiState.pending.isEmpty(),
                 onAction = { viewModel.updateTicket(it) },
                 onHistory = { showHistory = true; viewModel.loadSupportHistory() })
@@ -186,13 +183,18 @@ fun MessageScreen(
             }
         },
         bottomBar = {
-            if (viewModel.canReply) ChatInputBar(
-                text = messageText,
-                onTextChange = { messageText = it },
-                isSending = uiState.isQueueing,
+            if (viewModel.canReply || editingId != null) ChatInputBar(
+                text = if (editingId != null) editingText else messageText,
+                onTextChange = { if (editingId != null) editingText = it else messageText = it },
+                isSending = if (editingId != null) uiState.isEditing else uiState.isQueueing,
+                editingId = editingId,
+                canSaveEdit = editingText != originalText,
+                editError = if (editingId != null) uiState.editError else null,
+                onCancelEdit = cancelEdit,
                 onSendClick = {
-                    // Clear only after the outbox has safely stored this exact text.
-                    viewModel.sendMessage(messageText)
+                    val id = editingId
+                    if (id != null) viewModel.editMessage(id, editingText)
+                    else viewModel.sendMessage(messageText)
                 }
             )
         }
@@ -248,13 +250,17 @@ fun MessageScreen(
                         }
                         items(uiState.messages.sortedBy { it.createdAt }.reversed(), key = { it.id }) { message ->
                             MessageBubble(message = message, currentEmail = currentEmail, onEdit = {
-                                viewModel.clearEditError()
-                                editingId = message.id
-                                editingText = message.text
-                                originalText = message.text
+                                if (!uiState.isEditing) {
+                                    viewModel.clearEditError()
+                                    editingId = message.id
+                                    editingText = message.text
+                                    originalText = message.text
+                                }
                             }, onDelete = {
-                                viewModel.clearDeleteError()
-                                deletingId = message.id
+                                if (!uiState.isEditing) {
+                                    viewModel.clearDeleteError()
+                                    deletingId = message.id
+                                }
                             })
                         }
                     }
@@ -364,46 +370,73 @@ private fun ChatInputBar(
     text: String,
     onTextChange: (String) -> Unit,
     isSending: Boolean,
+    editingId: String?,
+    canSaveEdit: Boolean,
+    editError: String?,
+    onCancelEdit: () -> Unit,
     onSendClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
+    val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    var fieldValue by remember(editingId) {
+        mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(text, androidx.compose.ui.text.TextRange(text.length)))
+    }
+    LaunchedEffect(text) {
+        if (fieldValue.text != text)
+            fieldValue = androidx.compose.ui.text.input.TextFieldValue(text, androidx.compose.ui.text.TextRange(text.length))
+    }
+    LaunchedEffect(editingId) {
+        if (editingId != null) { focusRequester.requestFocus(); keyboard?.show() }
+    }
+    Column(
+        modifier = Modifier.fillMaxWidth().background(HeaderBg)
             .themedDrawBehind { palette ->
                 drawLine(palette.BorderColor, Offset(0f, 0f), Offset(size.width, 0f), 2f)
             }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(24.dp),
-            color = CardSurface,
-            border = BorderStroke(1.5.dp, ListBorderLight)
+        if (editingId != null) Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            TextField(
-                value = text,
-                onValueChange = onTextChange,
-                placeholder = { Text("Mensagem...", color = TextSecondary, fontSize = 14.sp) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
-                ),
-                maxLines = 5,
-                enabled = !isSending
-            )
+            Text("Editando mensagem", color = TextPrimary, fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            WtcButton(onCancelEdit, enabled = !isSending, kind = WtcButtonKind.Text) { Text("Cancelar") }
         }
-        Spacer(Modifier.width(10.dp))
-        WtcButton(onClick = onSendClick, enabled = !isSending && text.isNotBlank()) {
-            if (isSending) CircularProgressIndicator(Modifier.size(20.dp), color = LocalContentColor.current, strokeWidth = 2.dp)
-            else Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar mensagem", modifier = Modifier.size(20.dp))
+        if (editError != null) WtcFeedback(editError)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(24.dp), color = CardSurface,
+                border = BorderStroke(1.5.dp, ListBorderLight)
+            ) {
+                TextField(
+                    value = fieldValue,
+                    onValueChange = { fieldValue = it; onTextChange(it.text) },
+                    placeholder = { Text("Mensagem...", color = TextSecondary, fontSize = 14.sp) },
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        disabledTextColor = TextSecondary
+                    ),
+                    maxLines = 5, enabled = !isSending
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            WtcButton(onClick = onSendClick, loading = isSending,
+                enabled = text.isNotBlank() && (editingId == null || canSaveEdit)) {
+                if (editingId != null) Text("Salvar")
+                else Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar mensagem", modifier = Modifier.size(20.dp))
+            }
         }
     }
 }

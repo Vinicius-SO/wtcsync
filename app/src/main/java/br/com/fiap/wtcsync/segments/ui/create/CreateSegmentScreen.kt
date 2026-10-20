@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.segments.ui.create
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -46,9 +47,9 @@ fun CreateSegmentScreen(
                 .fillMaxWidth()
                 .background(HeaderBg)
                 .height(56.dp)
-                .drawBehind {
+                .themedDrawBehind { palette ->
                     drawLine(
-                        color = BorderColor,
+                        color = palette.BorderColor,
                         start = Offset(0f, size.height),
                         end = Offset(size.width, size.height),
                         strokeWidth = 2f
@@ -90,7 +91,7 @@ fun CreateSegmentScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             state.error?.let {
-                Text(it, color = Color.Red, fontSize = 14.sp)
+                Text(it, color = ErrorText, fontSize = 14.sp)
             }
 
             // Nome
@@ -102,13 +103,13 @@ fun CreateSegmentScreen(
                 placeholder = { Text("Ex: Clientes VIP 2024") },
                 singleLine = true,
                 isError = state.nameError != null,
-                supportingText = state.nameError?.let { { Text(it, color = Color.Red) } },
+                supportingText = state.nameError?.let { { Text(it, color = ErrorText) } },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BorderColor,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedContainerColor = CardSurface,
+                    unfocusedContainerColor = CardSurface
                 )
             )
 
@@ -125,8 +126,8 @@ fun CreateSegmentScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BorderColor,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedContainerColor = CardSurface,
+                    unfocusedContainerColor = CardSurface
                 )
             )
 
@@ -134,7 +135,7 @@ fun CreateSegmentScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White,
+                color = CardSurface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
             ) {
                 Column(modifier = Modifier.padding(16.dp),
@@ -181,7 +182,7 @@ fun CreateSegmentScreen(
                             Surface(
                                 onClick = { viewModel.onStatusChanged(option) },
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (selected) YellowBadge else Color.White,
+                                color = if (selected) YellowBadge else CardSurface,
                                 border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
                             ) {
                                 Text(
@@ -224,7 +225,7 @@ fun CreateSegmentScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White,
+                color = CardSurface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
             ) {
                 Row(
@@ -247,13 +248,13 @@ fun CreateSegmentScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFE8F4FD)
+                color = InfoBg
             ) {
                 Text(
                     text = "Segmentos dinâmicos são atualizados automaticamente quando um novo cliente atende aos critérios acima.",
                     modifier = Modifier.padding(16.dp),
                     fontSize = 13.sp,
-                    color = Color(0xFF1565C0)
+                    color = InfoText
                 )
             }
 

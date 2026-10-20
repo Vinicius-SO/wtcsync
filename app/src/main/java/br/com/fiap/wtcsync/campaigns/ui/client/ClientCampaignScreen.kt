@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.client
 
+import br.com.fiap.wtcsync.theme.*
 import android.app.Application
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -34,7 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -180,9 +181,9 @@ private fun HeaderSection() {
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = ListBorderLight,
+                    color = palette.ListBorderLight,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -238,7 +239,7 @@ private fun CampaignBanner(mediaUrl: String) {
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Box(
@@ -310,7 +311,7 @@ private fun BodySection(body: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -341,7 +342,7 @@ private fun StatsSection(campaign: Campaign) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -499,7 +500,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge)
+            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
         ) {
             Text("Tentar novamente", color = TextPrimary)
         }

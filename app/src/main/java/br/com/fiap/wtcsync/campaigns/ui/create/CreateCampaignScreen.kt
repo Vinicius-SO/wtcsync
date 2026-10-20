@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.create
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,7 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -91,7 +92,7 @@ fun CreateCampaignScreen(
             state.error?.let { error ->
                 Text(
                     text = error,
-                    color = Color.Red,
+                    color = ErrorText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -135,7 +136,7 @@ fun CreateCampaignScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge),
+                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText),
                 enabled = !state.isSubmitting
             ) {
                 if (state.isSubmitting) {
@@ -175,9 +176,9 @@ private fun CreateHeader(
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = BorderColor,
+                    color = palette.BorderColor,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -232,13 +233,13 @@ private fun BasicInfoSection(
             placeholder = { Text("Ex: Promoção de Verão") },
             singleLine = true,
             isError = titleError != null,
-            supportingText = titleError?.let { { Text(it, color = Color.Red) } },
+            supportingText = titleError?.let { { Text(it, color = ErrorText) } },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
 
@@ -250,13 +251,13 @@ private fun BasicInfoSection(
             minLines = 3,
             maxLines = 6,
             isError = bodyError != null,
-            supportingText = bodyError?.let { { Text(it, color = Color.Red) } },
+            supportingText = bodyError?.let { { Text(it, color = ErrorText) } },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
 
@@ -267,13 +268,13 @@ private fun BasicInfoSection(
             placeholder = { Text("Ex: seg-123") },
             singleLine = true,
             isError = segmentError != null,
-            supportingText = segmentError?.let { { Text(it, color = Color.Red) } },
+            supportingText = segmentError?.let { { Text(it, color = ErrorText) } },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
     }
@@ -301,8 +302,8 @@ private fun MediaSection(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
     }
@@ -337,8 +338,8 @@ private fun LinkSection(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
     }
@@ -461,8 +462,8 @@ private fun ActionFieldItem(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
 
@@ -476,8 +477,8 @@ private fun ActionFieldItem(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
 
@@ -492,8 +493,8 @@ private fun ActionFieldItem(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = BorderColor,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedContainerColor = CardSurface,
+                unfocusedContainerColor = CardSurface
             )
         )
     }

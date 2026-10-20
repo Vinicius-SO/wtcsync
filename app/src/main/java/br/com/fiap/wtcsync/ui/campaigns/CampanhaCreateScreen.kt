@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,7 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -90,9 +91,9 @@ private fun CreateHeader(onCancelClick: () -> Unit) {
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = BorderColor,
+                    color = palette.BorderColor,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -168,7 +169,7 @@ private fun FormField(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(2.dp, BorderColor)
         ) {
             Box(
@@ -182,7 +183,7 @@ private fun FormField(
                     text = placeholder,
                     fontSize = if (isMultiline) 13.sp else 15.sp,
                     fontWeight = FontWeight.Normal,
-                    color = Color(0xFF6B7280),
+                    color = PlaceholderText,
                     lineHeight = if (isMultiline) 22.sp else 20.sp
                 )
             }
@@ -208,7 +209,7 @@ private fun SegmentField() {
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White,
+                color = CardSurface,
                 border = BorderStroke(2.dp, BorderColor)
             ) {
                 Row(
@@ -317,7 +318,7 @@ private fun LinkSection() {
 
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(2.dp, BorderColor)
         ) {
             Row(
@@ -342,7 +343,7 @@ private fun LinkSection() {
                     text = "https://app.wtcsync.com/promo",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
-                    color = Color(0xFF6B7280),
+                    color = PlaceholderText,
                     modifier = Modifier.padding(end = 8.dp)
                 )
             }
@@ -407,7 +408,7 @@ private fun ActionButtonColumn(
 
         Surface(
             shape = RoundedCornerShape(8.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(2.dp, BorderColor)
         ) {
             Box(
@@ -428,7 +429,7 @@ private fun ActionButtonColumn(
 
         Surface(
             shape = RoundedCornerShape(8.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(2.dp, BorderColor)
         ) {
             Box(
@@ -442,7 +443,7 @@ private fun ActionButtonColumn(
                     text = linkPlaceholder,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = Color(0xFF6B7280)
+                    color = PlaceholderText
                 )
             }
         }
@@ -459,9 +460,9 @@ private fun CreateFooter() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .drawBehind {
+                .themedDrawBehind { palette ->
                     drawLine(
-                        color = BorderColor.copy(alpha = 0.6f),
+                        color = palette.BorderColor.copy(alpha = 0.6f),
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
                         strokeWidth = 2f
@@ -479,7 +480,7 @@ private fun CreateFooter() {
                         .weight(1f)
                         .shadow(2.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
+                    color = CardSurface,
                     border = BorderStroke(2.dp, BorderColor)
                 ) {
                     Box(

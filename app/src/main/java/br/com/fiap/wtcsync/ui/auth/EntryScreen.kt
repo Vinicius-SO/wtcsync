@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.theme.*
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,10 +27,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 
 val YellowPrimary = Color(0xFFFFCC00)
-val BlackPrimary = Color(0xFF1C1C1E)
-val LightBackground = Color(0xFFFFF9EF)
-val DividerColor = Color(0xFFE0E0E0)
-val SubtitleGray = Color(0xFF474746)
+val BlackPrimary: Color
+    @Composable get() = TextPrimary
+val LightBackground: Color
+    @Composable get() = BackgroundCream
+val DividerColor: Color
+    @Composable get() = ListDivider
+val SubtitleGray: Color
+    @Composable get() = TextSecondary
 
 val robotoFamily = FontFamily(
     Font(R.font.roboto, FontWeight.Bold)
@@ -155,7 +160,7 @@ fun EntryScreen(
                 Button(
                     onClick = onRegisterClick,
                     enabled = userState !is Resource.Loading,
-                    colors = ButtonDefaults.buttonColors(containerColor = BlackPrimary),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
@@ -178,7 +183,7 @@ fun EntryScreen(
                     Divider(color = DividerColor, thickness = 1.dp, modifier = Modifier.weight(1f))
                     Text(
                         "ou",
-                        color = Color.Gray,
+                        color = TextSecondary,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
                     Divider(color = DividerColor, thickness = 1.dp, modifier = Modifier.weight(1f))
@@ -215,7 +220,7 @@ fun EntryScreen(
                         Spacer(Modifier.width(8.dp))
                         Text(
                             "Entrar com Google",
-                            color = Color.Black,
+                            color = TextPrimary,
                             fontWeight = FontWeight.Normal,
                             fontSize = 20.sp
                         )

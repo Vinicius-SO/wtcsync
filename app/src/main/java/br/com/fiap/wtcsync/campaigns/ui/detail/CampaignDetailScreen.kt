@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.detail
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,7 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -334,15 +335,15 @@ private fun FeedbackMessage(text: String, isError: Boolean, onDismiss: () -> Uni
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = if (isError) Color(0xFFFFE0E0) else Color(0xFFE0FFE0),
-        border = BorderStroke(1.dp, if (isError) Color.Red.copy(alpha = 0.3f) else Color.Green.copy(alpha = 0.3f))
+        color = if (isError) ErrorBg else SuccessBg,
+        border = BorderStroke(1.dp, if (isError) ErrorText.copy(alpha = 0.3f) else Color.Green.copy(alpha = 0.3f))
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(12.dp),
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            color = if (isError) Color.Red else Color(0xFF2E7D32)
+            color = if (isError) ErrorText else SuccessText
         )
     }
 }
@@ -354,9 +355,9 @@ private fun DetailHeader(onBackClick: () -> Unit) {
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = BorderColor,
+                    color = palette.BorderColor,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -403,7 +404,7 @@ private fun CampaignBanner(mediaUrl: String) {
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Box(
@@ -475,7 +476,7 @@ private fun BodySection(body: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -506,7 +507,7 @@ private fun StatsSection(campaign: Campaign) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -665,13 +666,13 @@ private fun ErrorDetailState(message: String, onRetry: () -> Unit, onBack: () ->
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = onBack,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = CardSurface, contentColor = TextPrimary)
             ) {
                 Text("Voltar", color = TextPrimary)
             }
             Button(
                 onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge)
+                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
             ) {
                 Text("Tentar novamente", color = TextPrimary)
             }

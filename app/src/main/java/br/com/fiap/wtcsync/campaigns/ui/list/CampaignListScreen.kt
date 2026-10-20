@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.list
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,7 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -195,7 +196,7 @@ fun CampaignListScreen(
                         campaignToDelete = null
                     }
                 ) {
-                    Text("Excluir", color = androidx.compose.ui.graphics.Color.Red)
+                    Text("Excluir", color = androidx.compose.ui.graphics.ErrorText)
                 }
             },
             dismissButton = {
@@ -218,9 +219,9 @@ private fun ListHeader(
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = ListBorderLight,
+                    color = palette.ListBorderLight,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -296,7 +297,7 @@ private fun SearchBar(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(0.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(2.dp, ListBorderLight)
         ) {
             Box(
@@ -378,15 +379,15 @@ private fun FilterTabs(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = ListBorderLight,
+                    color = palette.ListBorderLight,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
                 )
                 drawLine(
-                    color = ListTabActive,
+                    color = palette.ListTabActive,
                     start = Offset(indicatorOffset, size.height),
                     end = Offset(indicatorOffset + indicatorWidth, size.height),
                     strokeWidth = 4f
@@ -456,7 +457,7 @@ private fun CampaignCard(
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor)
             .clickable(onClick = onClick),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, ListBorderLight)
     ) {
         Column(
@@ -508,7 +509,7 @@ private fun CampaignCard(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Excluir", color = androidx.compose.ui.graphics.Color.Red) },
+                            text = { Text("Excluir", color = androidx.compose.ui.graphics.ErrorText) },
                             onClick = {
                                 showMenu = false
                                 onDeleteClick()
@@ -546,9 +547,9 @@ private fun StatsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = ListDivider,
+                    color = palette.ListDivider,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
                     strokeWidth = 2f
@@ -593,9 +594,9 @@ private fun StatItem(count: String) {
 @Composable
 private fun SkeletonCard() {
     val shimmerColors = listOf(
-        Color(0xFFE8E5E0),
-        Color(0xFFF5F3F0),
-        Color(0xFFE8E5E0)
+        SkeletonBase,
+        SkeletonHighlight,
+        SkeletonBase
     )
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim by transition.animateFloat(
@@ -616,7 +617,7 @@ private fun SkeletonCard() {
         modifier = Modifier
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, ListBorderLight)
     ) {
         Column(
@@ -679,7 +680,7 @@ private fun EmptyState(onRetry: () -> Unit) {
         )
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge)
+            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
         ) {
             Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
@@ -712,7 +713,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge)
+            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
         ) {
             Text("Tentar novamente", color = TextPrimary)
         }
@@ -735,7 +736,7 @@ private fun PromoCard() {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                tint = YellowBadge.copy(alpha = 0.3f),
+                tint = SaveText.copy(alpha = 0.3f),
                 modifier = Modifier.size(44.dp)
             )
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -196,7 +196,7 @@ fun CampaignListScreen(
                         campaignToDelete = null
                     }
                 ) {
-                    Text("Excluir", color = androidx.compose.ui.graphics.ErrorText)
+                    Text("Excluir", color = ErrorText)
                 }
             },
             dismissButton = {
@@ -509,7 +509,7 @@ private fun CampaignCard(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Excluir", color = androidx.compose.ui.graphics.ErrorText) },
+                            text = { Text("Excluir", color = ErrorText) },
                             onClick = {
                                 showMenu = false
                                 onDeleteClick()

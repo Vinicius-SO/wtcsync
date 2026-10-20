@@ -288,7 +288,7 @@ fun MessageBubble(message: MessageDto, currentEmail: String) {
                     Text(
                         text = formatTime(message.createdAt),
                         fontSize = 10.sp,
-                        color = textColor.copy(alpha = 0.6f)
+                        color = textColor.copy(alpha = 0.8f)
                     )
                     if (isMe) {
                         val delivered = message.status == "ENTREGUE"

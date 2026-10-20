@@ -17,11 +17,14 @@ class AuthRepositoryTest {
     private class FakeApi : AuthApi {
         var profile = AuthProfile("test@example.com", "OPERATOR", "user-id", "Test")
         var profileFailure: Exception? = null
+        var loginProfile: AuthProfile? = null
+        var profileCalls = 0
         var registered: RegisterRequest? = null
         var authorization: String? = null
-        override suspend fun login(request: LoginRequest) = LoginResponse("api-jwt", request.email, 86400000L)
+        override suspend fun login(request: LoginRequest) = LoginResponse("api-jwt", request.email, 86400000L, loginProfile)
         override suspend fun loginGoogle(request: Map<String, String>) = error("not used")
         override suspend fun me(authorization: String): AuthProfile {
+            profileCalls++
             this.authorization = authorization
             profileFailure?.let { throw it }
             return profile
@@ -52,6 +55,46 @@ class AuthRepositoryTest {
         assertTrue(result is Resource.Error)
         verify(manager).clear()
         verifyNoMoreInteractions(manager)
+    }
+
+    @Test fun verifiedProfileInLoginAvoidsTheSecondNetworkRequest() = runBlocking {
+        val api = FakeApi().apply { loginProfile = profile; profileFailure = java.io.IOException("unnecessary call") }
+        val manager = mock(SessionManager::class.java)
+        val result = AuthRepository(mock(FirebaseAuth::class.java), api, manager)
+            .loginWithApi("test@example.com", "password")
+        assertTrue(result is Resource.Success)
+        assertEquals("user-id", result.data?.uid)
+        assertEquals(0, api.profileCalls)
+        verify(manager).saveSession("api-jwt", "OPERATOR", "test@example.com")
+    }
+
+    @Test fun embeddedProfileForAnotherAccountIsRejectedWithoutFallbackOrSessionWrite() = runBlocking {
+        val api = FakeApi().apply { loginProfile = AuthProfile("other@example.com", "OPERATOR") }
+        val manager = mock(SessionManager::class.java)
+        val result = AuthRepository(mock(FirebaseAuth::class.java), api, manager).loginWithApi("test@example.com", "password")
+        assertTrue(result is Resource.Error)
+        assertEquals(0, api.profileCalls)
+        verify(manager).clear(); verifyNoMoreInteractions(manager)
+    }
+
+    @Test fun unknownEmbeddedRoleIsRejectedWithoutTrustingTheUi() = runBlocking {
+        val api = FakeApi().apply { loginProfile = AuthProfile("test@example.com", "UNKNOWN") }
+        val manager = mock(SessionManager::class.java)
+        val result = AuthRepository(mock(FirebaseAuth::class.java), api, manager).loginWithApi("test@example.com", "password")
+        assertTrue(result is Resource.Error)
+        assertEquals(0, api.profileCalls)
+        verify(manager).clear(); verifyNoMoreInteractions(manager)
+    }
+
+    @Test fun restoringSavedSessionStillChecksTheAccountWithTheServer() = runBlocking {
+        val api = FakeApi()
+        val manager = mock(SessionManager::class.java)
+        `when`(manager.currentToken).thenReturn("api-jwt")
+        `when`(manager.currentEmail).thenReturn("test@example.com")
+        val result = AuthRepository(mock(FirebaseAuth::class.java), api, manager).restoreSession()
+        assertTrue(result is Resource.Success)
+        assertEquals(1, api.profileCalls)
+        assertEquals("Bearer api-jwt", api.authorization)
     }
 
     @Test fun registrationUsesBackendWithoutCreatingFirebaseIdentity() = runBlocking {

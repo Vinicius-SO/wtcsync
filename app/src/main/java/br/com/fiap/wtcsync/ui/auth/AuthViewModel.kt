@@ -22,6 +22,8 @@ class AuthViewModel(
     val userState: StateFlow<Resource<User>?> = _userState
     private val _currentRole = MutableStateFlow<UserRole?>(null)
     val currentRole: StateFlow<UserRole?> = _currentRole
+    private val _isRestoring = MutableStateFlow(true)
+    val isRestoring: StateFlow<Boolean> = _isRestoring
     private var authJob: Job? = null
 
     private val restoreJob = viewModelScope.launch {
@@ -33,13 +35,23 @@ class AuthViewModel(
             throw e
         } catch (_: Exception) {
             _userState.value = Resource.Error("Não foi possível restaurar sua sessão. Entre novamente.")
-        }
+        } finally { _isRestoring.value = false }
+    }
+
+    fun useManualLogin() {
+        if (authJob?.isActive == true) return
+        restoreJob.cancel()
+        _isRestoring.value = false
+        _currentRole.value = null
+        _userState.value = null
     }
 
     private fun authenticate(block: suspend () -> Resource<User>) {
         if (authJob?.isActive == true) return
         _userState.value = Resource.Loading()
         authJob = viewModelScope.launch {
+            // An explicit login replaces the old restore request; do not queue behind a slow /me.
+            restoreJob.cancel()
             restoreJob.join()
             _userState.value = Resource.Loading()
             _currentRole.value = null

@@ -98,8 +98,8 @@ fun Navigation(navController: NavHostController,
         composable("entry") {
             EntryScreen(
                 viewModel = authViewModel,
-                onLoginClick = { navController.navigate("login") },
-                onRegisterClick = { navController.navigate("register") },
+                onLoginClick = { authViewModel.useManualLogin(); navController.navigate("login") },
+                onRegisterClick = { authViewModel.useManualLogin(); navController.navigate("register") },
                 onLoginSuccess = {
                     navController.navigate("home") {
                         popUpTo("entry") { inclusive = true }

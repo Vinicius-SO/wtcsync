@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/login-speed
       - feature/inline-edit-client-menu
       - fix/durable-push
       - feature/read-notifications

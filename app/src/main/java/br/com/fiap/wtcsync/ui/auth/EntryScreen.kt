@@ -54,6 +54,8 @@ fun EntryScreen(
 ) {
     val context = LocalContext.current
     val userState by viewModel.userState.collectAsState()
+    val restoring by viewModel.isRestoring.collectAsState()
+    val authenticating = userState is Resource.Loading && !restoring
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -139,7 +141,7 @@ fun EntryScreen(
 
                 // Botão Login
                 WtcButton(onClick = onLoginClick,
-                enabled = userState !is Resource.Loading,
+                enabled = !authenticating,
                 modifier = Modifier
                         .fillMaxWidth()
                         ) {
@@ -150,7 +152,7 @@ fun EntryScreen(
 
                 // Botão Cadastrar
                 WtcButton(kind = WtcButtonKind.Secondary, onClick = onRegisterClick,
-                enabled = userState !is Resource.Loading,
+                enabled = !authenticating,
                 modifier = Modifier
                         .fillMaxWidth()
                         ) {
@@ -184,11 +186,11 @@ fun EntryScreen(
                         val client = GoogleSignIn.getClient(context, gso)
                         googleSignInLauncher.launch(client.signInIntent)
                     },
-                enabled = userState !is Resource.Loading,
+                enabled = !authenticating,
                 modifier = Modifier
                         .fillMaxWidth()
                         ) {
-                    if (userState is Resource.Loading) {
+                    if (authenticating) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp
@@ -204,7 +206,7 @@ fun EntryScreen(
             }
 
             // Loading overlay quando estiver carregando
-            if (userState is Resource.Loading) {
+            if (authenticating) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

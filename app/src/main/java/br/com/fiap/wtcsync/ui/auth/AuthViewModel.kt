@@ -40,6 +40,8 @@ class AuthViewModel(
         if (authJob?.isActive == true) return
         _userState.value = Resource.Loading()
         authJob = viewModelScope.launch {
+            // An explicit login replaces the old restore request; do not queue behind a slow /me.
+            restoreJob.cancel()
             restoreJob.join()
             _userState.value = Resource.Loading()
             _currentRole.value = null

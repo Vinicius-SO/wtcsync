@@ -29,8 +29,9 @@ class AuthRepository(
         if (response.token.isBlank() || response.email.isBlank()) {
             return Resource.Error("A API retornou uma sessão inválida.")
         }
-        // Confirm identity before persisting. A failed /me must never leave a provisional JWT.
-        val profile = authApi.me("Bearer ${response.token}")
+        // New servers return the verified profile with the session. Older servers keep the /me fallback.
+        // Restoring an existing session still verifies it with /me before granting access.
+        val profile = response.profile ?: authApi.me("Bearer ${response.token}")
         if (!profile.email.equals(response.email, ignoreCase = true)) {
             return Resource.Error("A API retornou um perfil diferente da conta autenticada.")
         }
@@ -50,7 +51,7 @@ class AuthRepository(
         val firebaseUser = firebaseAuth.signInWithCredential(
             GoogleAuthProvider.getCredential(idToken, null)
         ).await().user ?: return@request Resource.Error("Conta Google indisponível.")
-        val token = firebaseUser.getIdToken(true).await().token
+        val token = firebaseUser.getIdToken(false).await().token
             ?: return@request Resource.Error("Não foi possível obter o token do Firebase.")
         establishSession(authApi.loginGoogle(mapOf("idToken" to token)))
     }

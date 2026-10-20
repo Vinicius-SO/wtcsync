@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/reliable-chat
       - feature/message-delete
       - feature/message-edit
       - feature/client-profile-campaign

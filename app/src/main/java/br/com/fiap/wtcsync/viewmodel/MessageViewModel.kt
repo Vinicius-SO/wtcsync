@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -20,7 +21,13 @@ data class MessageUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isSending: Boolean = false,
-    val sentCount: Int = 0,
+    val queuedCount: Int = 0,
+    val lastQueuedText: String? = null,
+    val isQueueing: Boolean = false,
+    val pending: List<br.com.fiap.wtcsync.data.messages.PendingMessage> = emptyList(),
+    val sendingId: String? = null,
+    val historyError: String? = null,
+    val hasLoadedConversation: Boolean = false,
     val ticket: br.com.fiap.wtcsync.data.remote.SupportTicket? = null,
     val connected: Boolean = false,
     val changingAssignment: Boolean = false,
@@ -36,29 +43,50 @@ class MessageViewModel(
     private val clienteId: String,
     private val messageApi: MessageApi,
     private val sessionManager: SessionManager,
-    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi
+    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi,
+    private val outbox: br.com.fiap.wtcsync.data.messages.MessageOutbox,
+    private val connectInBackground: Boolean = true
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MessageUiState())
     val uiState: StateFlow<MessageUiState> = _uiState.asStateFlow()
 
     private val deletedMessageIds = mutableSetOf<String>()
+    private val ownerEmail = sessionManager.currentEmail.orEmpty().lowercase(java.util.Locale.ROOT)
+    private val sender = br.com.fiap.wtcsync.data.messages.ReliableMessageSender(messageApi, outbox, { sessionManager.currentEmail })
+    private var drainJob: kotlinx.coroutines.Job? = null
+    private var loadJob: kotlinx.coroutines.Job? = null
+    private var reloadRequested = false
+    private var messageRevision = 0L
+    private fun ownsSession() = ownerEmail.isNotBlank() && ownerEmail.equals(sessionManager.currentEmail, ignoreCase = true)
 
     val isStaff: Boolean get() = sessionManager.currentRole in setOf("OPERATOR", "ADMIN", "ATENDENTE")
     val canReply: Boolean get() = !isStaff || (_uiState.value.ticket?.assignedTo == sessionManager.currentEmail)
 
     init {
         viewModelScope.launch {
+            try {
+                outbox.observe(ownerEmail, clienteId).collect { pending ->
+                    _uiState.update { it.copy(pending = pending) }
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (_: Exception) {
+                _uiState.update { it.copy(error = "Não foi possível recuperar as mensagens pendentes. Tente novamente.") }
+            }
+        }
+        drainPending()
+        if (connectInBackground) viewModelScope.launch {
             br.com.fiap.wtcsync.data.remote.SupportSocket(sessionManager).listen(
-                { connected -> _uiState.update { it.copy(connected = connected) } },
+                { connected -> _uiState.update { it.copy(connected = connected) }; if (connected) drainPending() },
                 { loadConversation(silent = true) }
             )
         }
         loadConversation()
-        viewModelScope.launch {
+        if (connectInBackground) viewModelScope.launch {
             while (isActive) {
                 delay(12_000L)
                 loadConversation(silent = true)
+                drainPending()
             }
         }
     }
@@ -79,23 +107,50 @@ class MessageViewModel(
         }
     }
 
-    // Histórico de atendimento compartilhado; a API verifica o perfil e o cliente autenticado.
+    fun dismissError() { _uiState.update { it.copy(error = null, historyError = null) } }
+
+    fun retryConnection() { dismissError(); loadConversation(silent = true); drainPending() }
+
+    // Coalesce polling and WebSocket reloads; a slow request must be allowed to finish.
     fun loadConversation(silent: Boolean = false) {
-        val operadorId = sessionManager.currentEmail ?: run {
-            _uiState.update { it.copy(isLoading = false, error = "Sessão ausente. Entre novamente.") }
-            return
-        }
-        viewModelScope.launch {
-            if (!silent) _uiState.update { it.copy(isLoading = true, error = null) }
+        if (!ownsSession()) return
+        if (loadJob?.isActive == true) { reloadRequested = true; return }
+        loadJob = viewModelScope.launch {
+            val revision = messageRevision
+            if (!silent && !_uiState.value.hasLoadedConversation)
+                _uiState.update { it.copy(isLoading = true) }
+            var warning: String? = null
             try {
-                val ticket = supportApi.get(clienteId)
+                try {
+                    val ticket = supportApi.get(clienteId)
+                    if (ownsSession()) _uiState.update { it.copy(ticket = ticket) }
+                } catch (e: kotlinx.coroutines.CancellationException) { throw e
+                } catch (_: Exception) { warning = "Não foi possível atualizar o atendimento. Tente novamente." }
                 val messages = messageApi.getInbox(clienteId)
-                _uiState.update { it.copy(messages = messages.filterNot { message -> message.id in deletedMessageIds }, ticket = ticket, isLoading = false, error = null) }
+                if (!ownsSession()) return@launch
+                if (revision == messageRevision) {
+                    _uiState.update { it.copy(
+                        messages = messages.filterNot { message -> message.id in deletedMessageIds },
+                        hasLoadedConversation = true, historyError = warning
+                    ) }
+                } else { reloadRequested = true }
+                try {
+                    outbox.acknowledge(ownerEmail, clienteId, messages.filter {
+                        it.senderId.equals(ownerEmail, ignoreCase = true)
+                    }.mapNotNull { it.clientMessageId }.toSet())
+                } catch (e: kotlinx.coroutines.CancellationException) { throw e
+                } catch (_: Exception) { _uiState.update { it.copy(error = "Não foi possível atualizar as confirmações de envio. Tente novamente.") } }
                 markDelivered(messages)
             } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                val error = if (e is retrofit2.HttpException && e.code() in setOf(401, 403))
+                    "Não foi possível acessar a conversa. Confira sua sessão e tente novamente."
+                    else "Não foi possível atualizar a conversa. Verifique sua conexão e tente novamente."
+                _uiState.update { it.copy(historyError = error) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
+            if (reloadRequested) { reloadRequested = false; loadJob = null; loadConversation(silent = true) }
         }
     }
 
@@ -129,6 +184,7 @@ class MessageViewModel(
                     if (e.code() != 404) throw e
                 }
                 deletedMessageIds.add(id)
+                messageRevision++
                 _uiState.update { state -> state.copy(
                     messages = state.messages.filterNot { it.id == id },
                     deletedCount = state.deletedCount + 1
@@ -156,6 +212,7 @@ class MessageViewModel(
             _uiState.update { it.copy(isEditing = true, editError = null) }
             try {
                 val updated = messageApi.editMessage(id, mapOf("text" to text))
+                messageRevision++
                 _uiState.update { state -> state.copy(
                     messages = state.messages.map { if (it.id == id) updated else it },
                     editedCount = state.editedCount + 1
@@ -175,22 +232,55 @@ class MessageViewModel(
         }
     }
 
-    fun sendMessage(text: String) {
-        if (text.isBlank() || !canReply || _uiState.value.isSending) return
-        val senderId = sessionManager.currentEmail ?: run {
-            _uiState.update { it.copy(error = "Sessão expirada. Faça login novamente.") }
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSending = true, error = null) }
+    fun retryPending(id: String) { drainPending(forceId = id) }
+
+    private fun drainPending(forceId: String? = null) {
+        if (!ownsSession() || drainJob?.isActive == true) return
+        drainJob = viewModelScope.launch {
+            var force = forceId
             try {
-                messageApi.sendMessage(MessageRequest(senderId, clienteId, text))
-                _uiState.update { it.copy(isSending = false, sentCount = it.sentCount + 1) }
-                loadConversation(silent = true)
+                while (isActive && ownsSession()) {
+                    val first = outbox.list(ownerEmail, clienteId).firstOrNull() ?: break
+                    if (force == null && (!first.retryable || first.nextAttemptAt > System.currentTimeMillis())) break
+                    _uiState.update { it.copy(isSending = true, sendingId = first.id) }
+                    when (val result = sender.sendNext(ownerEmail, clienteId, force)) {
+                        is br.com.fiap.wtcsync.data.messages.SendAttempt.Sent -> {
+                            messageRevision++
+                            if (result.message.id !in deletedMessageIds) _uiState.update { state -> state.copy(
+                                messages = (state.messages.filterNot { it.id == result.message.id } + result.message)
+                            ) }
+                            loadConversation(silent = true)
+                        }
+                        is br.com.fiap.wtcsync.data.messages.SendAttempt.AlreadyDeleted -> {
+                            _uiState.update { it.copy(error = "Esta mensagem já havia sido enviada e apagada.") }
+                            loadConversation(silent = true)
+                        }
+                        else -> break
+                    }
+                    force = null
+                }
             } catch (e: kotlinx.coroutines.CancellationException) { throw e
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isSending = false, error = e.message) }
-            }
+            } catch (_: Exception) {
+                _uiState.update { it.copy(error = "Não foi possível atualizar as mensagens pendentes. Seu texto foi mantido.") }
+            } finally { _uiState.update { it.copy(isSending = false, sendingId = null) } }
+        }
+    }
+
+    fun sendMessage(text: String) {
+        if (text.isBlank() || !canReply || !ownsSession() || _uiState.value.isQueueing) return
+        _uiState.update { it.copy(isQueueing = true) }
+        viewModelScope.launch {
+            try {
+                outbox.enqueue(br.com.fiap.wtcsync.data.messages.PendingMessage(
+                    id = java.util.UUID.randomUUID().toString(), ownerEmail = ownerEmail,
+                    customerId = clienteId, text = text, createdAt = java.time.Instant.now().toString()
+                ))
+                _uiState.update { it.copy(queuedCount = it.queuedCount + 1, lastQueuedText = text, error = null) }
+                drainPending()
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (_: Exception) {
+                _uiState.update { it.copy(error = "Não foi possível guardar sua mensagem. O texto foi mantido; tente novamente.") }
+            } finally { _uiState.update { it.copy(isQueueing = false) } }
         }
     }
 
@@ -201,9 +291,10 @@ class MessageViewModelFactory(
     private val clienteId: String,
     private val messageApi: MessageApi,
     private val sessionManager: SessionManager,
-    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi
+    private val supportApi: br.com.fiap.wtcsync.data.remote.SupportApi,
+    private val outbox: br.com.fiap.wtcsync.data.messages.MessageOutbox
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        MessageViewModel(clienteId, messageApi, sessionManager, supportApi) as T
+        MessageViewModel(clienteId, messageApi, sessionManager, supportApi, outbox) as T
 }

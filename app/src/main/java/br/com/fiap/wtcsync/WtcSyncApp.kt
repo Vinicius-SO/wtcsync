@@ -22,6 +22,8 @@ class WtcSyncApp : Application() {
         private set
     lateinit var apiService: ApiService
         private set
+    lateinit var messageOutbox: br.com.fiap.wtcsync.data.messages.MessageOutbox
+        private set
     lateinit var campaignRepository: CampaignRepository
         private set
 
@@ -43,6 +45,7 @@ class WtcSyncApp : Application() {
 
         sessionManager = SessionManager(this)
         apiService = ApiService(sessionManager)
+        messageOutbox = br.com.fiap.wtcsync.data.messages.PersistentMessageOutbox(this)
         campaignRepository = CampaignRepository(apiService.campaignApi)
         segmentRepository = SegmentRepository(apiService.segmentApi)
         authRepository = AuthRepository(

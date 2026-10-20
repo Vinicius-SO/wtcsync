@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/client-edit-profile
       - feature/support-queue
       - feature/ux-role-navigation
       - feature/unified-auth

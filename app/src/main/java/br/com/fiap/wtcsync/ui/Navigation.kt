@@ -183,12 +183,14 @@ fun Navigation(navController: NavHostController) {
             )
         }
         composable(
-            route = "clientes/{id}/editar",
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
+            route = "clientes/{id}/editar?fromChat={fromChat}",
+            arguments = listOf(navArgument("id") { type = NavType.StringType },
+                navArgument("fromChat") { type = NavType.BoolType; defaultValue = false })
         ) { backStack ->
             if (role != UserRole.OPERATOR && role != UserRole.ATENDENTE) { AccessDeniedScreen(navController); return@composable }
             ClientFormScreen(
                 clienteId = backStack.arguments?.getString("id"),
+                fromConversation = backStack.arguments?.getBoolean("fromChat") == true,
                 onSave = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )

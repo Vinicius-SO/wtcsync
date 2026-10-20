@@ -1,6 +1,7 @@
 package br.com.fiap.wtcsync.ui.messages
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +34,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -79,9 +85,19 @@ fun MessageScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     val currentEmail = app.sessionManager.currentEmail ?: ""
-    var messageText by remember { mutableStateOf("") }
+    var messageText by rememberSaveable(clienteId) { mutableStateOf("") }
+    var lastSentCount by rememberSaveable(clienteId) { mutableStateOf(0) }
     LaunchedEffect(uiState.sentCount) {
-        if (uiState.sentCount > 0) messageText = ""
+        if (uiState.sentCount > lastSentCount) messageText = ""
+        lastSentCount = uiState.sentCount
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.loadConversation(silent = true)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -89,7 +105,10 @@ fun MessageScreen(
         topBar = {
             Column {
             ChatHeader(
-                contactName = contactName,
+                contactName = uiState.ticket?.customerName ?: contactName,
+                onContactClick = if (viewModel.isStaff) ({
+                    navController.navigate("clientes/${android.net.Uri.encode(clienteId)}/editar?fromChat=true")
+                }) else null,
                 onBackClick = { navController.popBackStack() },
                 showBackButton = showBackButton,
                 connectionLabel = if (uiState.connected) "Atualização em tempo real" else "Reconectando · atualização periódica"
@@ -176,7 +195,7 @@ fun MessageScreen(
 }
 
 @Composable
-private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean, connectionLabel: String) {
+private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean, connectionLabel: String, onContactClick: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,6 +220,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 10.dp)
+                .then(if (onContactClick != null) Modifier.clickable(onClick = onContactClick) else Modifier)
         ) {
             Text(
                 text = contactName,

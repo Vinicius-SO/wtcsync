@@ -31,6 +31,9 @@ data class MessageUiState(
     val ticket: br.com.fiap.wtcsync.data.remote.SupportTicket? = null,
     val connected: Boolean = false,
     val changingAssignment: Boolean = false,
+    val supportHistory: List<br.com.fiap.wtcsync.data.remote.SupportHistoryEntry> = emptyList(),
+    val loadingSupportHistory: Boolean = false,
+    val supportHistoryError: String? = null,
     val isEditing: Boolean = false,
     val editError: String? = null,
     val editedCount: Int = 0,
@@ -61,7 +64,7 @@ class MessageViewModel(
     private fun ownsSession() = ownerEmail.isNotBlank() && ownerEmail.equals(sessionManager.currentEmail, ignoreCase = true)
 
     val isStaff: Boolean get() = sessionManager.currentRole in setOf("OPERATOR", "ADMIN", "ATENDENTE")
-    val canReply: Boolean get() = !isStaff || (_uiState.value.ticket?.assignedTo == sessionManager.currentEmail)
+    val canReply: Boolean get() = !isStaff || (_uiState.value.ticket?.isClosed != true && _uiState.value.ticket?.assignedTo == sessionManager.currentEmail)
 
     init {
         viewModelScope.launch {
@@ -91,19 +94,45 @@ class MessageViewModel(
         }
     }
 
-    fun changeAssignment(release: Boolean = false) {
-        if (_uiState.value.changingAssignment) return
+    fun changeAssignment(release: Boolean = false) = updateTicket(
+        if (release) br.com.fiap.wtcsync.data.remote.TicketAction.RELEASE else br.com.fiap.wtcsync.data.remote.TicketAction.CLAIM)
+
+    fun updateTicket(action: br.com.fiap.wtcsync.data.remote.TicketAction) {
+        if (_uiState.value.changingAssignment || !isStaff || !ownsSession()) return
+        if (action == br.com.fiap.wtcsync.data.remote.TicketAction.CLOSE &&
+            (_uiState.value.isSending || _uiState.value.isQueueing || _uiState.value.pending.isNotEmpty())) {
+            _uiState.update { it.copy(error = "Aguarde a confirmação das mensagens pendentes antes de concluir.") }
+            return
+        }
+        _uiState.update { it.copy(changingAssignment = true, error = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(changingAssignment = true, error = null) }
             try {
-                val ticket = if (release) supportApi.release(clienteId) else supportApi.claim(clienteId)
+                val ticket = when (action) {
+                    br.com.fiap.wtcsync.data.remote.TicketAction.CLAIM -> supportApi.claim(clienteId)
+                    br.com.fiap.wtcsync.data.remote.TicketAction.RELEASE -> supportApi.release(clienteId)
+                    br.com.fiap.wtcsync.data.remote.TicketAction.CLOSE -> supportApi.close(clienteId)
+                    br.com.fiap.wtcsync.data.remote.TicketAction.REOPEN -> supportApi.reopen(clienteId)
+                }
                 _uiState.update { it.copy(ticket = ticket) }
+                loadConversation(silent = true)
             } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = if (e is retrofit2.HttpException && e.code() == 409)
-                    "Outro operador assumiu este atendimento. Atualize a conversa." else "Não foi possível alterar o atendimento.") }
+                    "O atendimento mudou. Atualize a conversa e confira o responsável e o status."
+                    else "Não foi possível atualizar o atendimento. Tente novamente.") }
                 loadConversation(silent = true)
             } finally { _uiState.update { it.copy(changingAssignment = false) } }
+        }
+    }
+
+    fun loadSupportHistory() {
+        if (!isStaff || _uiState.value.loadingSupportHistory || !ownsSession()) return
+        _uiState.update { it.copy(loadingSupportHistory = true, supportHistoryError = null) }
+        viewModelScope.launch {
+            try { val history = supportApi.history(clienteId); _uiState.update { it.copy(supportHistory = history) }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (_: Exception) { _uiState.update { it.copy(supportHistoryError = "Não foi possível carregar o histórico do atendimento.") }
+            } finally { _uiState.update { it.copy(loadingSupportHistory = false) } }
         }
     }
 

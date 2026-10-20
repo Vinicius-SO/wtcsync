@@ -98,6 +98,10 @@ fun MessageScreen(
     var lastEditedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
     var deletingId by rememberSaveable(clienteId) { mutableStateOf<String?>(null) }
     var lastDeletedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    var showHistory by rememberSaveable(clienteId) { mutableStateOf(false) }
+    if (showHistory && viewModel.isStaff) SupportHistoryDialog(uiState.supportHistory,
+        uiState.loadingSupportHistory, uiState.supportHistoryError,
+        onRetry = { viewModel.loadSupportHistory() }, onDismiss = { showHistory = false })
     LaunchedEffect(uiState.deletedCount) {
         if (uiState.deletedCount > lastDeletedCount) deletingId = null
         lastDeletedCount = uiState.deletedCount
@@ -151,16 +155,12 @@ fun MessageScreen(
                 showBackButton = showBackButton,
                 connectionLabel = if (uiState.connected) "Atualização em tempo real" else "Reconectando · atualização periódica"
             )
-            Row(Modifier.fillMaxWidth().background(HeaderBg).padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                val owner = uiState.ticket?.assignedTo
-                Text(if (owner == null) "Aguardando atendimento" else if (viewModel.isStaff) "Responsável: $owner" else "Em atendimento",
-                    modifier = Modifier.weight(1f), color = TextSecondary, fontSize = 12.sp)
-                if (viewModel.isStaff && (owner == null || owner == currentEmail)) {
-                    WtcButton(kind = WtcButtonKind.Text, enabled = !uiState.changingAssignment && !uiState.isSending,
-                onClick = { viewModel.changeAssignment(release = owner == currentEmail) }) { Text(if (owner == currentEmail) "Devolver à fila" else "Assumir atendimento") }
-                }
-            }
+            SupportTicketBar(uiState.ticket, viewModel.isStaff, currentEmail,
+                busy = uiState.changingAssignment || uiState.isSending || uiState.isQueueing,
+                canClose = uiState.pending.isEmpty(),
+                onAction = { viewModel.updateTicket(it) },
+                onHistory = { showHistory = true; viewModel.loadSupportHistory() })
+
             }
         },
         bottomBar = {

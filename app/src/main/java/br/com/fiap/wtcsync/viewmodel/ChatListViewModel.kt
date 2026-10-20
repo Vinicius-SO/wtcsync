@@ -29,6 +29,21 @@ data class ChatListUiState(
     val lastMessages: Map<String, String> = emptyMap(),
     val lastMessageTimes: Map<String, Long> = emptyMap()
 ) {
+    fun clientsForFilter(filter: br.com.fiap.wtcsync.data.remote.TicketFilter, email: String?): List<ClientDto> {
+        val byClient = tickets.associateBy { it.customerId }
+        return filteredClients.filter { client ->
+            val ticket = byClient[client.id]
+            when (filter) {
+                br.com.fiap.wtcsync.data.remote.TicketFilter.OPEN -> ticket?.isClosed != true
+                br.com.fiap.wtcsync.data.remote.TicketFilter.WAITING -> ticket?.state == "WAITING"
+                br.com.fiap.wtcsync.data.remote.TicketFilter.ACTIVE -> ticket?.state == "IN_PROGRESS"
+                br.com.fiap.wtcsync.data.remote.TicketFilter.MINE -> ticket?.state == "IN_PROGRESS" && email != null && ticket.assignedTo.equals(email, ignoreCase = true)
+                br.com.fiap.wtcsync.data.remote.TicketFilter.CLOSED -> ticket?.isClosed == true
+                br.com.fiap.wtcsync.data.remote.TicketFilter.ALL -> true
+            }
+        }
+    }
+
     val filteredClients: List<ClientDto>
         get() {
             val requestedTimes = tickets.associate { it.customerId to activityTime(it.requestedAt) }
@@ -145,6 +160,8 @@ class ChatListViewModel(
             lastMessageTimes = (it.lastMessageTimes - newLastMessages.keys) + newLastMessageTimes
         ) }
     }
+
+    fun dismissError() { _uiState.update { it.copy(error = null) } }
 
     fun onSearchQueryChange(query: String) {
         _uiState.update { it.copy(searchQuery = query) }

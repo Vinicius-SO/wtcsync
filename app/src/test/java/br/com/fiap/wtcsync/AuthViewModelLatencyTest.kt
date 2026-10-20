@@ -58,4 +58,31 @@ class AuthViewModelLatencyTest {
         assertEquals("new@example.invalid", model.userState.value?.data?.email)
         verify(manager).saveSession("new-token", "OPERATOR", "new@example.invalid")
     }
+    @Test fun choosingManualEntryStopsRestorationWithoutGrantingAccess() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        var cancelled = false
+        val api = object : AuthApi {
+            override suspend fun me(authorization: String): AuthProfile {
+                try { gate.await() } finally { cancelled = true }
+                return AuthProfile("old@example.invalid", "OPERATOR")
+            }
+            override suspend fun login(request: LoginRequest): LoginResponse = error("unused")
+            override suspend fun loginGoogle(request: Map<String, String>): LoginResponse = error("unused")
+            override suspend fun register(request: RegisterRequest): RegisterResponse = error("unused")
+        }
+        val manager = mock(SessionManager::class.java)
+        `when`(manager.currentToken).thenReturn("old-token")
+        `when`(manager.currentEmail).thenReturn("old@example.invalid")
+        val model = AuthViewModel(AuthRepository(mock(FirebaseAuth::class.java), api, manager), manager)
+        store.put("auth", model)
+        runCurrent()
+        assertTrue(model.isRestoring.value)
+        model.useManualLogin(); runCurrent()
+        assertFalse(model.isRestoring.value)
+        assertNull(model.userState.value)
+        assertNull(model.currentRole.value)
+        assertTrue(cancelled)
+        verify(manager, never()).saveSession(anyString(), anyString(), anyString())
+    }
+
 }

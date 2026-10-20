@@ -86,12 +86,12 @@ fun MessageScreen(
     val app = LocalContext.current.applicationContext as WtcSyncApp
     val viewModel: MessageViewModel = viewModel(
         key = clienteId,
-        factory = MessageViewModelFactory(clienteId, app.apiService.messageApi, app.sessionManager, app.apiService.supportApi)
+        factory = MessageViewModelFactory(clienteId, app.apiService.messageApi, app.sessionManager, app.apiService.supportApi, app.messageOutbox)
     )
     val uiState by viewModel.uiState.collectAsState()
     val currentEmail = app.sessionManager.currentEmail ?: ""
     var messageText by rememberSaveable(clienteId) { mutableStateOf("") }
-    var lastSentCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    var lastQueuedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
     var editingId by rememberSaveable(clienteId) { mutableStateOf<String?>(null) }
     var editingText by rememberSaveable(clienteId) { mutableStateOf("") }
     var originalText by rememberSaveable(clienteId) { mutableStateOf("") }
@@ -125,9 +125,9 @@ fun MessageScreen(
             onSave = { editingId?.let { viewModel.editMessage(it, editingText) } }
         )
     }
-    LaunchedEffect(uiState.sentCount) {
-        if (uiState.sentCount > lastSentCount) messageText = ""
-        lastSentCount = uiState.sentCount
+    LaunchedEffect(uiState.queuedCount) {
+        if (uiState.queuedCount > lastQueuedCount && messageText == uiState.lastQueuedText) messageText = ""
+        lastQueuedCount = uiState.queuedCount
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, viewModel) {
@@ -167,71 +167,74 @@ fun MessageScreen(
             if (viewModel.canReply) ChatInputBar(
                 text = messageText,
                 onTextChange = { messageText = it },
-                isSending = uiState.isSending,
+                isSending = uiState.isQueueing,
                 onSendClick = {
-                    // Keep the draft until the API confirms delivery.
+                    // Clear only after the outbox has safely stored this exact text.
                     viewModel.sendMessage(messageText)
                 }
             )
         }
     ) { padding ->
-        when {
-            uiState.isLoading -> Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = SaveText, strokeWidth = 2.dp)
+        val confirmedIds = uiState.messages.filter { it.senderId.equals(currentEmail, ignoreCase = true) }.mapNotNull { it.clientMessageId }.toSet()
+        val pending = uiState.pending.filterNot { it.id in confirmedIds }
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            val warning = uiState.error ?: uiState.historyError
+            if (warning != null) {
+                WtcFeedback(warning, onDismiss = { viewModel.dismissError() })
+                WtcButton({ viewModel.retryConnection() }, kind = WtcButtonKind.Text,
+                    modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp)) { Text("Tentar novamente") }
             }
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                when {
+                    uiState.isLoading && !uiState.hasLoadedConversation && uiState.messages.isEmpty() && pending.isEmpty() -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = SaveText, strokeWidth = 2.dp)
+                    }
 
-            uiState.error != null -> Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Erro: ${uiState.error}",
-                    color = TextSecondary,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(32.dp)
-                )
-            }
+                    uiState.messages.isEmpty() && pending.isEmpty() -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            ClientAvatar(name = contactName, size = 64.dp)
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                text = if (uiState.historyError != null && !uiState.hasLoadedConversation) "Seu histórico ainda não pôde ser carregado." else "Inicie uma conversa com $contactName",
+                                color = TextSecondary,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
+                        }
+                    }
 
-            uiState.messages.isEmpty() -> Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ClientAvatar(name = contactName, size = 64.dp)
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        text = "Inicie uma conversa com $contactName",
-                        color = TextSecondary,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    )
-                }
-            }
-
-            else -> LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 12.dp),
-                reverseLayout = true,
-                verticalArrangement = Arrangement.Bottom,
-                contentPadding = PaddingValues(vertical = 12.dp)
-            ) {
-                items(uiState.messages.sortedBy { it.createdAt }.reversed(), key = { it.id }) { message ->
-                    MessageBubble(message = message, currentEmail = currentEmail, onEdit = {
-                        viewModel.clearEditError()
-                        editingId = message.id
-                        editingText = message.text
-                        originalText = message.text
-                    }, onDelete = {
-                        viewModel.clearDeleteError()
-                        deletingId = message.id
-                    })
+                    else -> LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp),
+                        reverseLayout = true,
+                        verticalArrangement = Arrangement.Bottom,
+                        contentPadding = PaddingValues(vertical = 12.dp)
+                    ) {
+                        items(pending.reversed(), key = { "pending-${it.id}" }) { message ->
+                            PendingMessageBubble(message, sending = uiState.sendingId == message.id,
+                                canRetry = uiState.sendingId == null && pending.firstOrNull()?.id == message.id,
+                                onRetry = { viewModel.retryPending(message.id) })
+                        }
+                        items(uiState.messages.sortedBy { it.createdAt }.reversed(), key = { it.id }) { message ->
+                            MessageBubble(message = message, currentEmail = currentEmail, onEdit = {
+                                viewModel.clearEditError()
+                                editingId = message.id
+                                editingText = message.text
+                                originalText = message.text
+                            }, onDelete = {
+                                viewModel.clearDeleteError()
+                                deletingId = message.id
+                            })
+                        }
+                    }
                 }
             }
         }

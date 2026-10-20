@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Segment
 import androidx.compose.material3.Icon
@@ -41,12 +42,14 @@ enum class BottomNavTab(val icon: ImageVector, val label: String) {
     CLIENTES(Icons.Default.Group, "Clientes"),
     SEGMENTOS(Icons.Default.Segment, "Segmentos"),
     CAMPANHAS(Icons.Default.Campaign, "Campanhas"),
-    CHAT(Icons.AutoMirrored.Filled.Chat, "Chat")
+    CHAT(Icons.AutoMirrored.Filled.Chat, "Chat"),
+    MEU_PERFIL(Icons.Default.Person, "Meu perfil"),
+    ULTIMA_CAMPANHA(Icons.Default.Campaign, "Campanha")
 }
 
 @Composable
 fun BottomNavBar(
-    tabs: List<BottomNavTab> = BottomNavTab.entries,
+    tabs: List<BottomNavTab> = listOf(BottomNavTab.CLIENTES, BottomNavTab.SEGMENTOS, BottomNavTab.CAMPANHAS, BottomNavTab.CHAT),
     selectedTab: BottomNavTab,
     onTabSelected: (BottomNavTab) -> Unit,
     modifier: Modifier = Modifier

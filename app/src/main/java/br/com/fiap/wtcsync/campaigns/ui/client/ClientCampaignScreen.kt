@@ -91,21 +91,15 @@ class ClientCampaignViewModel(
     private val _uiState = MutableStateFlow(ClientCampaignUiState(isLoading = true))
     val uiState: StateFlow<ClientCampaignUiState> = _uiState
 
-    init {
-        loadLastCampaign()
-    }
+    private var loadJob: kotlinx.coroutines.Job? = null
 
     fun loadLastCampaign() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.value = ClientCampaignUiState(isLoading = true)
-            when (val result = repository.listCampaigns()) {
+            when (val result = repository.latestReceivedCampaign()) {
                 is Resource.Success -> {
-                    val campaigns = result.data ?: emptyList()
-                    val sentCampaigns = campaigns
-                        .filter { it.status.equals("sent", ignoreCase = true) }
-                        .sortedByDescending { it.createdAt }
-
-                    val lastCampaign = sentCampaigns.firstOrNull()
+                    val lastCampaign = result.data
                     if (lastCampaign != null) {
                         _uiState.value = ClientCampaignUiState(campaign = lastCampaign)
                     } else {
@@ -142,13 +136,16 @@ fun ClientCampaignScreen(application: Application) {
         factory = ClientCampaignViewModelFactory(application)
     )
     val state by viewModel.uiState.collectAsState()
+    WtcRefreshOnResume { viewModel.loadLastCampaign() }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundCream)
     ) {
-        HeaderSection()
+        WtcScreenHeader("Última campanha", actions = {
+            WtcButton({ viewModel.loadLastCampaign() }, enabled = !state.isLoading, kind = WtcButtonKind.Text) { Text("Atualizar") }
+        })
 
         when {
             state.isLoading -> {
@@ -176,11 +173,6 @@ fun ClientCampaignScreen(application: Application) {
 }
 
 @Composable
-private fun HeaderSection() {
-    WtcScreenHeader("Campanha recebida")
-}
-
-@Composable
 private fun CampaignDetailView(campaign: Campaign) {
     Column(
         modifier = Modifier
@@ -199,7 +191,6 @@ private fun CampaignDetailView(campaign: Campaign) {
             BodySection(body = campaign.body)
         }
 
-        StatsSection(campaign = campaign)
 
         if (campaign.actions.isNotEmpty()) {
             ActionButtonsSection(campaign = campaign)
@@ -275,11 +266,7 @@ private fun CampaignInfoSection(campaign: Campaign) {
             letterSpacing = (-0.48).sp,
             lineHeight = 30.sp
         )
-        Text(
-            text = "Criado por: ${campaign.createdBy}",
-            fontSize = 13.sp,
-            color = TextSecondary
-        )
+
     }
 }
 
@@ -314,60 +301,6 @@ private fun BodySection(body: String) {
 }
 
 @Composable
-private fun StatsSection(campaign: Campaign) {
-    val stats = campaign.stats
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "ESTATÍSTICAS",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextSecondary,
-                letterSpacing = 0.44.sp
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatCard(label = "Target", value = "${stats.totalTargeted}")
-                StatCard(label = "Entregues", value = "${stats.totalDelivered}")
-                StatCard(label = "Lidas", value = "${stats.totalRead}")
-                StatCard(label = "Falhas", value = "${stats.totalFailed}")
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatCard(label: String, value: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Normal,
-            color = TextSecondary
-        )
-    }
-}
-
-@Composable
 private fun ActionButtonsSection(campaign: Campaign) {
     WtcCampaignActions(campaign)
 }
@@ -397,7 +330,7 @@ private fun FooterSection(campaign: Campaign) {
                     modifier = Modifier.size(12.dp)
                 )
                 Text(
-                    text = "Criado em ${campaign.createdAt.take(10)}",
+                    text = "Recebida em ${campaign.createdAt.take(10).split("-").reversed().joinToString("/")}",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = FooterText,

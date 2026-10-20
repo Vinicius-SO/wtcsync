@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.create
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -131,36 +132,10 @@ fun CreateCampaignScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Button(
-                onClick = viewModel::submit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText),
-                enabled = !state.isSubmitting
-            ) {
-                if (state.isSubmitting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = YellowText,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = null,
-                        tint = YellowText,
-                        modifier = Modifier.size(19.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Criar Campanha",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = YellowText,
-                        letterSpacing = (-0.18).sp
-                    )
-                }
+            WtcButton(onClick = viewModel::submit, modifier = Modifier.fillMaxWidth(), loading = state.isSubmitting) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Criar campanha")
             }
         }
     }
@@ -171,46 +146,7 @@ private fun CreateHeader(
     onCancelClick: () -> Unit,
     isSubmitting: Boolean
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.BorderColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "CANCELAR",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextSecondary,
-            letterSpacing = 0.44.sp,
-            modifier = Modifier.clickable(onClick = onCancelClick)
-        )
-        Text(
-            text = "Nova Campanha",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            letterSpacing = (-0.18).sp
-        )
-        Text(
-            text = "ENVIAR",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (isSubmitting) TextSecondary else SaveText,
-            letterSpacing = 0.44.sp
-        )
-    }
+    WtcScreenHeader("Nova campanha", onBack = onCancelClick, backLabel = "Cancelar")
 }
 
 @Composable
@@ -376,31 +312,7 @@ private fun ActionButtonsSection(
                     color = TextPrimary,
                     letterSpacing = 0.44.sp
                 )
-                Surface(
-                    onClick = onAddAction,
-                    shape = RoundedCornerShape(8.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = YellowText,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "Adicionar",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = YellowText
-                        )
-                    }
-                }
+                WtcButton(onClick = onAddAction, kind = WtcButtonKind.Secondary) { Text("Adicionar ação") }
             }
 
             actions.forEachIndexed { index, action ->

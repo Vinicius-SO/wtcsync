@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.segments.ui.list
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -51,59 +52,9 @@ fun SegmentListScreen(
             .background(BackgroundCream)
     ) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeaderBg)
-                .height(56.dp)
-                .themedDrawBehind { palette ->
-                    drawLine(
-                        color = palette.BorderColor,
-                        start = Offset(0f, size.height),
-                        end = Offset(size.width, size.height),
-                        strokeWidth = 2f
-                    )
-                }
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Segmentos",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            if (showCreateButton) {
-                Surface(
-                    modifier = Modifier
-                        .shadow(2.dp, RoundedCornerShape(4.dp))
-                        .clickable(onClick = onCreateClick),
-                    shape = RoundedCornerShape(4.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = YellowText,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "+ Novo",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = YellowText
-                        )
-                    }
-                }
-            }
-        }
+        WtcScreenHeader("Segmentos", actions = {
+            if (showCreateButton) WtcCreateButton(onCreateClick)
+        })
 
         LazyColumn(
             modifier = Modifier
@@ -334,45 +285,7 @@ private fun SegmentSkeletonCard() {
 
 @Composable
 private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Erro ao carregar segmentos",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Text(
-                text = message,
-                fontSize = 13.sp,
-                color = TextSecondary,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Surface(
-                onClick = onRetry,
-                shape = RoundedCornerShape(8.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Text(
-                    text = "Tentar novamente",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = YellowText
-                )
-            }
-        }
-    }
+    WtcStatePanel("Não foi possível carregar os segmentos", message, onRetry = onRetry)
 }
 
 @Composable
@@ -380,51 +293,7 @@ private fun EmptyState(
     showCreateButton: Boolean,
     onCreateClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = "Crie novos filtros",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Text(
-                text = "Organize sua base de contatos por interesses ou localização.",
-                fontSize = 13.sp,
-                color = TextSecondary,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            if (showCreateButton) {
-                Surface(
-                    onClick = onCreateClick,
-                    shape = RoundedCornerShape(8.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Text(
-                        text = "+ Novo Segmento",
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText
-                    )
-                }
-            }
-        }
-    }
+    WtcStatePanel("Nenhum segmento encontrado", action = {
+        if (showCreateButton) { Spacer(Modifier.height(16.dp)); WtcCreateButton(onCreateClick) }
+    })
 }

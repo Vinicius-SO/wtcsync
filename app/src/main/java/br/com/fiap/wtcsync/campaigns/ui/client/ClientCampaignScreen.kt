@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.client
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import android.app.Application
 import androidx.compose.foundation.BorderStroke
@@ -176,31 +177,7 @@ fun ClientCampaignScreen(application: Application) {
 
 @Composable
 private fun HeaderSection() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.ListBorderLight,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Campanha Recebida",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            letterSpacing = (-0.18).sp
-        )
-    }
+    WtcScreenHeader("Campanha recebida")
 }
 
 @Composable
@@ -392,55 +369,10 @@ private fun StatCard(label: String, value: String) {
 
 @Composable
 private fun ActionButtonsSection(campaign: Campaign) {
-    val openUrl = rememberOpenUrl()
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        campaign.actions.forEach { action ->
-            val url = campaign.actionUrls[action.action]
-            Surface(
-                onClick = { url?.let { openUrl(it) } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-                shape = RoundedCornerShape(12.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = YellowText,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = action.title,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText,
-                        letterSpacing = 0.75.sp
-                    )
-                }
-            }
-        }
-    }
+    WtcCampaignActions(campaign)
 }
 
-@Composable
-private fun rememberOpenUrl(): (String) -> Unit {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    return { url ->
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-        context.startActivity(intent)
-    }
-}
+
 
 @Composable
 private fun FooterSection(campaign: Campaign) {
@@ -478,33 +410,7 @@ private fun FooterSection(campaign: Campaign) {
 
 @Composable
 private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Erro ao carregar campanha",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = message,
-            fontSize = 14.sp,
-            color = TextSecondary
-        )
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
-        ) {
-            Text("Tentar novamente", color = TextPrimary)
-        }
-    }
+    WtcStatePanel("Não foi possível carregar a campanha", message, onRetry = onRetry)
 }
 
 @Composable

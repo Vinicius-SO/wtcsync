@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.detail
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -206,16 +207,11 @@ private fun CampaignActions(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (status.lowercase() == "draft") {
-            Button(
-                onClick = onScheduleClick,
+            WtcButton(onClick = onScheduleClick,
                 enabled = !isScheduling && !isSending,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ListScheduledBg),
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
+                    ) {
                 if (isScheduling) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
@@ -223,28 +219,20 @@ private fun CampaignActions(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.CalendarMonth,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp))
                 }
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    text = if (isScheduling) "Agendando..." else "Agendar",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ListScheduledText
-                )
+                Text(text = if (isScheduling) "Agendando..." else "Agendar")
             }
         }
 
-        Button(
-            onClick = onSendClick,
-            enabled = !isScheduling && !isSending,
-            modifier = Modifier
+        WtcButton(onClick = onSendClick,
+                enabled = !isScheduling && !isSending,
+                modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = ListSentBg),
-            border = BorderStroke(2.dp, BorderColor)
-        ) {
+                ) {
             if (isSending) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
@@ -252,15 +240,12 @@ private fun CampaignActions(
                     strokeWidth = 2.dp
                 )
             } else {
-                Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.PlayArrow,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(8.dp))
-            Text(
-                text = if (isSending) "Enviando..." else "Enviar Agora",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = ListSentText
-            )
+            Text(text = if (isSending) "Enviando..." else "Enviar Agora")
         }
     }
 }
@@ -285,12 +270,12 @@ private fun ScheduleDateTimeDialog(
         DatePickerDialog(
             onDismissRequest = onDismiss,
             confirmButton = {
-                TextButton(onClick = { step = 1 }) {
+                WtcButton(kind = WtcButtonKind.Text, onClick = { step = 1 }) {
                     Text("Próximo")
                 }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) {
+                WtcButton(kind = WtcButtonKind.Text, onClick = onDismiss) {
                     Text("Cancelar")
                 }
             }
@@ -305,8 +290,7 @@ private fun ScheduleDateTimeDialog(
             title = { Text("Selecione o horário") },
             text = { TimePicker(state = timePickerState) },
             confirmButton = {
-                TextButton(
-                    onClick = {
+                WtcButton(kind = WtcButtonKind.Text, onClick = {
                         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
                         sdf.timeZone = TimeZone.getTimeZone("UTC")
                         val cal = java.util.Calendar.getInstance()
@@ -316,13 +300,12 @@ private fun ScheduleDateTimeDialog(
                         cal.set(java.util.Calendar.SECOND, 0)
                         cal.set(java.util.Calendar.MILLISECOND, 0)
                         onConfirm(sdf.format(cal.time))
-                    }
-                ) {
+                    }) {
                     Text("Confirmar")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { step = 0 }) {
+                WtcButton(kind = WtcButtonKind.Text, onClick = { step = 0 }) {
                     Text("Voltar")
                 }
             }
@@ -332,69 +315,12 @@ private fun ScheduleDateTimeDialog(
 
 @Composable
 private fun FeedbackMessage(text: String, isError: Boolean, onDismiss: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        color = if (isError) ErrorBg else SuccessBg,
-        border = BorderStroke(1.dp, if (isError) ErrorText.copy(alpha = 0.3f) else Color.Green.copy(alpha = 0.3f))
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(12.dp),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            color = if (isError) ErrorText else SuccessText
-        )
-    }
+    WtcFeedback(text, isError, onDismiss)
 }
 
 @Composable
 private fun DetailHeader(onBackClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.BorderColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            onClick = onBackClick,
-            modifier = Modifier.shadow(2.dp, RoundedCornerShape(8.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-            shape = RoundedCornerShape(8.dp),
-            color = HeaderBg,
-            border = BorderStroke(2.dp, BorderColor)
-        ) {
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-        Text(
-            text = "Campanha",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            letterSpacing = (-0.18).sp
-        )
-        Box(modifier = Modifier.size(40.dp))
-    }
+    WtcScreenHeader("Campanha", onBack = onBackClick)
 }
 
 @Composable
@@ -557,55 +483,10 @@ private fun StatCard(label: String, value: String) {
 
 @Composable
 private fun ActionButtonsSection(campaign: Campaign) {
-    val openUrl = rememberOpenUrl()
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        campaign.actions.forEach { action ->
-            val url = campaign.actionUrls[action.action]
-            Surface(
-                onClick = { url?.let { openUrl(it) } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-                shape = RoundedCornerShape(12.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = YellowText,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = action.title,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText,
-                        letterSpacing = 0.75.sp
-                    )
-                }
-            }
-        }
-    }
+    WtcCampaignActions(campaign)
 }
 
-@Composable
-private fun rememberOpenUrl(): (String) -> Unit {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    return { url ->
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-        context.startActivity(intent)
-    }
-}
+
 
 @Composable
 private fun FooterSection(campaign: Campaign) {
@@ -643,39 +524,5 @@ private fun FooterSection(campaign: Campaign) {
 
 @Composable
 private fun ErrorDetailState(message: String, onRetry: () -> Unit, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Campanha não encontrada",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = message,
-            fontSize = 14.sp,
-            color = TextSecondary
-        )
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = onBack,
-                colors = ButtonDefaults.buttonColors(containerColor = CardSurface, contentColor = TextPrimary)
-            ) {
-                Text("Voltar", color = TextPrimary)
-            }
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
-            ) {
-                Text("Tentar novamente", color = TextPrimary)
-            }
-        }
-    }
+    WtcStatePanel("Não foi possível carregar a campanha", message, onRetry = onRetry, onBack = onBack)
 }

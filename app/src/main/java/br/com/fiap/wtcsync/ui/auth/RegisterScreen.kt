@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -123,13 +124,13 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = { Text("João Silva", color = Color.LightGray) },
+                placeholder = { Text("João Silva", color = PlaceholderText) },
                 singleLine = true,
                 enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = BorderColor,
+                    unfocusedBorderColor = BorderColor,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -151,13 +152,13 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("JoeDoe@WTC.com", color = Color.LightGray) },
+                placeholder = { Text("JoeDoe@WTC.com", color = PlaceholderText) },
                 singleLine = true,
                 enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = BorderColor,
+                    unfocusedBorderColor = BorderColor,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -176,7 +177,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("••••••••••", color = Color.LightGray) },
+                placeholder = { Text("••••••••••", color = PlaceholderText) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 enabled = userState !is Resource.Loading,
                 trailingIcon = {
@@ -190,8 +191,8 @@ fun RegisterScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = BorderColor,
+                    unfocusedBorderColor = BorderColor,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -210,7 +211,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                placeholder = { Text("••••••••••", color = Color.LightGray) },
+                placeholder = { Text("••••••••••", color = PlaceholderText) },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 enabled = userState !is Resource.Loading,
                 trailingIcon = {
@@ -224,8 +225,8 @@ fun RegisterScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = BorderColor,
+                    unfocusedBorderColor = BorderColor,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -235,8 +236,7 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Botão Conectar (o Spinner foi removido daqui)
-            Button(
-                onClick = {
+            WtcButton(onClick = {
                     when {
                         name.isBlank() -> {
                             Toast.makeText(context, "Por favor, insira seu nome", Toast.LENGTH_SHORT).show()
@@ -261,21 +261,11 @@ fun RegisterScreen(
                 enabled = userState !is Resource.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = YellowPrimary, contentColor = Color(0xFF302600)
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
+                    ) {
                 // Texto do botão muda durante o loading
-                val buttonText = if (userState is Resource.Loading) "Registrando..." else "Conectar"
+                val buttonText = if (userState is Resource.Loading) "Registrando..." else "Criar conta"
 
-                Text(
-                    text = buttonText,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF302600)
-                )
+                Text(text = buttonText)
             }
 
             // Espaço extra no final para melhor UX

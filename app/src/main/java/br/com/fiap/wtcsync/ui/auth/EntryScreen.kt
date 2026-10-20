@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import android.app.Activity
 import android.widget.Toast
@@ -137,40 +138,23 @@ fun EntryScreen(
                 }
 
                 // Botão Login
-                Button(
-                    onClick = onLoginClick,
-                    enabled = userState !is Resource.Loading,
-                    colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary),
-                    modifier = Modifier
+                WtcButton(onClick = onLoginClick,
+                enabled = userState !is Resource.Loading,
+                modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Text(
-                        "Login",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+                        ) {
+                    Text("Login")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Botão Cadastrar
-                Button(
-                    onClick = onRegisterClick,
-                    enabled = userState !is Resource.Loading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
-                    modifier = Modifier
+                WtcButton(kind = WtcButtonKind.Secondary, onClick = onRegisterClick,
+                enabled = userState !is Resource.Loading,
+                modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Text(
-                        "Cadastrar",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                        ) {
+                    Text("Cadastrar")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -192,8 +176,7 @@ fun EntryScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Entrar com Google
-                OutlinedButton(
-                    onClick = {
+                WtcButton(kind = WtcButtonKind.Secondary, onClick = {
                         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                             .requestIdToken(context.getString(R.string.default_web_client_id))
                             .requestEmail()
@@ -201,29 +184,21 @@ fun EntryScreen(
                         val client = GoogleSignIn.getClient(context, gso)
                         googleSignInLauncher.launch(client.signInIntent)
                     },
-                    enabled = userState !is Resource.Loading,
-                    modifier = Modifier
+                enabled = userState !is Resource.Loading,
+                modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                ) {
+                        ) {
                     if (userState is Resource.Loading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_google_logo),
-                            contentDescription = "Google logo",
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Icon(painter = painterResource(id = R.drawable.ic_google_logo),
+                contentDescription = "Google logo",
+                modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(
-                            "Entrar com Google",
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 20.sp
-                        )
+                        Text("Entrar com Google")
                     }
                 }
             }

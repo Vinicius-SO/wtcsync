@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui
 
+import br.com.fiap.wtcsync.ui.components.*
 import android.app.Application
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
@@ -216,7 +217,7 @@ private fun HomeScreen(
     onLogout: () -> Unit
 ) {
     if (userRole == null) {
-        Column { Text("Sessão indisponível"); Button(onClick = onLogout) { Text("Entrar novamente") } }
+        Column { Text("Sessão indisponível"); WtcButton(onClick = onLogout) { Text("Entrar novamente") } }
         return
     }
     // O cliente possui um único canal de atendimento, sem CRM ou lista de conversas.
@@ -361,24 +362,13 @@ private fun ClientSupportHome() {
             navController = androidx.navigation.compose.rememberNavController(),
             showBackButton = false
         )
-        else -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(error ?: "Atendimento indisponível", textAlign = TextAlign.Center)
-                Button(onClick = { retry += 1 }) { Text("Tentar novamente") }
-            }
-        }
+        else -> WtcStatePanel("Atendimento indisponível", error, onRetry = { retry += 1 })
     }
 }
 
 @Composable
 private fun AccountBar(label: String, onLogout: () -> Unit) {
-    androidx.compose.foundation.layout.Row(
-        Modifier.padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, modifier = Modifier.weight(1f))
-        androidx.compose.material3.TextButton(onClick = onLogout) { Text("Sair") }
-    }
+    WtcAccountBar(label, onLogout)
 }
 
 @Composable
@@ -386,7 +376,7 @@ private fun AccessDeniedScreen(navController: NavHostController) {
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
         Text("Seu perfil não tem acesso a esta tela.")
-        Button(onClick = { navController.navigate("home") { popUpTo("home") { inclusive = true } } }) {
+        WtcButton(onClick = { navController.navigate("home") { popUpTo("home") { inclusive = true } } }) {
             Text("Voltar ao início")
         }
     }

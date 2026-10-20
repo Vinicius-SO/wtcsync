@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -119,16 +120,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // 8. Link "Esqueceu a senha"
-            TextButton(
-                onClick = { /* TODO: Ação de esquecer a senha */ },
-                modifier = Modifier.align(Alignment.Start),
-                contentPadding = PaddingValues(0.dp) // Remove padding extra
-            ) {
-                Text(
-                    "Esqueceu a senha ? Clique aqui",
-                    color = SubtitleGray, // Cor cinza sutil
-                    style = MaterialTheme.typography.bodySmall
-                )
+            WtcButton(kind = WtcButtonKind.Text, onClick = { /* TODO: Ação de esquecer a senha */ },
+                modifier = Modifier.align(Alignment.Start)) {
+                Text("Esqueceu a senha ? Clique aqui")
             }
 
             // Espaçador para empurrar o botão para baixo (opcional, ajuste conforme necessário)
@@ -138,22 +132,14 @@ fun LoginScreen(
 
 
             // 9. Botão Conectar
-            Button(
-                enabled = userState !is Resource.Loading,
+            WtcButton(enabled = userState !is Resource.Loading,
                 onClick = {
                     viewModel.login(email.trim(), senha)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary), // Cor Amarela
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text(
-                    if (userState is Resource.Loading) "Conectando..." else "Conectar",
-                    color = Color.Black, // Texto Preto
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                    ) {
+                Text(if (userState is Resource.Loading) "Conectando..." else "Conectar")
             }
 
             if (userState is Resource.Error) {

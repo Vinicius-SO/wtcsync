@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -90,82 +91,20 @@ fun ClientesScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(BackgroundCream)) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeaderBg)
-                .height(56.dp)
-                .themedDrawBehind { palette ->
-                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
-                }
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Surface(
-                    modifier = Modifier.size(32.dp),
-                    shape = CircleShape,
-                    color = ListBorderLight,
-                    border = BorderStroke(1.5.dp, BorderColor)
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextSecondary)
-                    }
-                }
-                Text("WTC Sync", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-            }
-            Surface(
-                modifier = Modifier.shadow(2.dp, RoundedCornerShape(4.dp)).clickable(onClick = onCreateClick),
-                shape = RoundedCornerShape(4.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = YellowText, modifier = Modifier.size(12.dp))
-                    Text("+ Novo", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = YellowText)
-                }
-            }
-        }
+        WtcScreenHeader("Clientes", actions = { WtcCreateButton(onCreateClick) })
 
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SaveText)
             }
-            uiState.error != null -> Column(
-                Modifier.fillMaxSize().padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Erro ao carregar clientes", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Spacer(Modifier.height(8.dp))
-                Text(uiState.error!!, fontSize = 14.sp, color = TextSecondary)
-                Spacer(Modifier.height(24.dp))
-                Button(
-                    onClick = { viewModel.loadClients() },
-                    colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp), tint = TextPrimary)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Tentar novamente", color = TextPrimary)
-                }
-            }
+            uiState.error != null -> WtcStatePanel("Não foi possível carregar os clientes", uiState.error,
+                onRetry = { viewModel.loadClients() })
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "Clientes",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = TextPrimary
-                    )
                     Spacer(Modifier.height(12.dp))
                     // Search field
                     Surface(
@@ -196,23 +135,10 @@ fun ClientesScreen(
                     }
                     Spacer(Modifier.height(12.dp))
                     // Status filter pills
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Todos", "Active", "Inactive", "Prospect").forEach { filter ->
                             val isActive = uiState.selectedFilter == filter
-                            Surface(
-                                onClick = { viewModel.onFilterChanged(filter) },
-                                shape = RoundedCornerShape(50),
-                                color = if (isActive) TextPrimary else Color.Transparent,
-                                border = BorderStroke(1.5.dp, if (isActive) TextPrimary else ListBorderLight)
-                            ) {
-                                Text(
-                                    text = filter,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                                    fontSize = 13.sp,
-                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isActive) BackgroundCream else TextSecondary
-                                )
-                            }
+                            WtcFilterChip(filter, isActive, onClick = { viewModel.onFilterChanged(filter) })
                         }
                     }
                     Spacer(Modifier.height(16.dp))

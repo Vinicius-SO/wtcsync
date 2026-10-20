@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -150,85 +151,14 @@ fun CampanhaListScreen(
                     onCampanhaClick = onCampanhaClick
                 )
             }
-            PromoCard()
+
         }
     }
 }
 
 @Composable
 private fun ListHeader(onCreateClick: () -> Unit = {}) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.ListBorderLight,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(2.dp, ListBorderLight)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.wtcsync_logo),
-                    contentDescription = "Perfil",
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                )
-            }
-
-            Text(
-                text = "Campanhas",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                letterSpacing = (-0.18).sp
-            )
-        }
-
-        Surface(
-            modifier = Modifier
-                .shadow(2.dp, RoundedCornerShape(4.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f))
-                .clickable(onClick = onCreateClick),
-            shape = RoundedCornerShape(4.dp),
-            color = YellowBadge,
-            border = BorderStroke(2.dp, BorderColor)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = YellowText,
-                    modifier = Modifier.size(12.dp)
-                )
-                Text(
-                    text = "+ Novo",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = YellowText
-                )
-            }
-        }
-    }
+    WtcScreenHeader("Campanhas", actions = { WtcCreateButton(onCreateClick) })
 }
 
 @Composable
@@ -674,65 +604,4 @@ private fun DrawShimmerLine(brush: Brush) {
             .height(2.dp)
             .background(brush)
     )
-}
-
-@Composable
-private fun PromoCard() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor),
-        color = ListPromoBg,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = SaveText.copy(alpha = 0.3f),
-                modifier = Modifier.size(44.dp)
-            )
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Potencialize seus resultados",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White,
-                    letterSpacing = (-0.18).sp,
-                    lineHeight = 24.sp
-                )
-
-                Text(
-                    text = "Crie automações baseadas no comportamento do seu cliente.",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White.copy(alpha = 0.8f),
-                    lineHeight = 18.sp,
-                    modifier = Modifier.width(200.dp)
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Surface(
-                shape = RoundedCornerShape(0.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
-            ) {
-                Text(
-                    text = "Explorar Templates",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            }
-        }
-    }
 }

@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.segments.ui.create
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,46 +43,9 @@ fun CreateSegmentScreen(
             .background(BackgroundCream)
     ) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeaderBg)
-                .height(56.dp)
-                .themedDrawBehind { palette ->
-                    drawLine(
-                        color = palette.BorderColor,
-                        start = Offset(0f, size.height),
-                        end = Offset(size.width, size.height),
-                        strokeWidth = 2f
-                    )
-                }
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "CANCELAR",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextSecondary,
-                letterSpacing = 0.44.sp,
-                modifier = Modifier.clickable(onClick = onBackClick)
-            )
-            Text(
-                text = "Novo Segmento",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Text(
-                text = "SALVAR",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (state.isSubmitting) TextSecondary else SaveText,
-                letterSpacing = 0.44.sp,
-                modifier = Modifier.clickable(enabled = !state.isSubmitting) { viewModel.submit() }
-            )
-        }
+        WtcScreenHeader("Novo segmento", onBack = onBackClick, backLabel = "Cancelar", actions = {
+            WtcButton(onClick = { viewModel.submit() }, loading = state.isSubmitting) { Text("Salvar") }
+        })
 
         Column(
             modifier = Modifier
@@ -179,20 +143,7 @@ fun CreateSegmentScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Todos", "Active", "Inactive").forEach { option ->
                             val selected = state.status == option
-                            Surface(
-                                onClick = { viewModel.onStatusChanged(option) },
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (selected) YellowBadge else CardSurface,
-                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
-                            ) {
-                                Text(
-                                    text = option,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                    fontSize = 14.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selected) YellowText else TextSecondary
-                                )
-                            }
+                            WtcFilterChip(option, selected, onClick = { viewModel.onStatusChanged(option) })
                         }
                     }
 

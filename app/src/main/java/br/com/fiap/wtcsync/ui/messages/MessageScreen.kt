@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import kotlinx.coroutines.flow.collect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.DisposableEffect
@@ -134,12 +135,33 @@ fun MessageScreen(
         lastQueuedCount = uiState.queuedCount
     }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    var resumed by remember { mutableStateOf(false) }
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
+            resumed = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
             if (event == Lifecycle.Event.ON_RESUME) viewModel.loadConversation(silent = true)
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        resumed = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        onDispose { resumed = false; lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(resumed, uiState.messages, uiState.ticket, editingId, deletingId, showHistory) {
+        androidx.compose.runtime.snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo.filter { item ->
+                item.offset + item.size > listState.layoutInfo.viewportStartOffset &&
+                    item.offset < listState.layoutInfo.viewportEndOffset
+            }.mapNotNull { it.key as? String }.toSet()
+        }.collect { ids ->
+            viewModel.markVisibleRead(ids, resumed && editingId == null && deletingId == null && !showHistory)
+        }
+    }
+    DisposableEffect(resumed, clienteId, currentEmail) {
+        if (resumed) {
+            br.com.fiap.wtcsync.util.ChatVisibility.activate(currentEmail, clienteId)
+            br.com.fiap.wtcsync.util.NotificationHelper.clearConversation(app, currentEmail, clienteId)
+        }
+        onDispose { br.com.fiap.wtcsync.util.ChatVisibility.deactivate(currentEmail, clienteId) }
     }
 
     Scaffold(
@@ -211,6 +233,7 @@ fun MessageScreen(
                     }
 
                     else -> LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 12.dp),
@@ -295,14 +318,14 @@ fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit
                         color = textColor.copy(alpha = 0.8f)
                     )
                     if (isMe) {
-                        val delivered = message.status == "ENTREGUE"
-                        val statusColor = if (delivered) InfoText else BorderColor
+                        val delivered = message.status in setOf("ENTREGUE", "LIDO")
+                        val statusColor = if (message.status == "LIDO") InfoText else BorderColor
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             Text(
-                                text = if (delivered) "Entregue" else "Enviado",
+                                text = br.com.fiap.wtcsync.data.messages.receiptLabel(message.status),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = statusColor

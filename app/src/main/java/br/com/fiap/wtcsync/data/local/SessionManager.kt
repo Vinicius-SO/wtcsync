@@ -32,6 +32,14 @@ class SessionManager(private val context: Context) {
     val role: Flow<String?> = context.dataStore.data.map { it[ROLE_KEY] }
     val email: Flow<String?> = context.dataStore.data.map { it[EMAIL_KEY] }
 
+    suspend fun tokenSnapshot(): String? = context.dataStore.data.first()[TOKEN_KEY]?.takeUnless { isExpired(it) }
+    suspend fun accountSnapshot(): Pair<String, String>? {
+        val prefs = context.dataStore.data.first()
+        val token = prefs[TOKEN_KEY]?.takeUnless { isExpired(it) } ?: return null
+        val email = prefs[EMAIL_KEY] ?: return null
+        return email to token
+    }
+
     suspend fun saveSession(token: String, role: String, email: String) {
         context.dataStore.edit {
             it[TOKEN_KEY] = token
@@ -55,6 +63,7 @@ class SessionManager(private val context: Context) {
         currentToken = null
         currentRole = null
         currentEmail = null
+        br.com.fiap.wtcsync.util.NotificationHelper.clearAll(context)
         context.dataStore.edit {
             it.clear()
         }

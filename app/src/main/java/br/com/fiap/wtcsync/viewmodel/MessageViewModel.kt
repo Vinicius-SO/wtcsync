@@ -61,6 +61,7 @@ class MessageViewModel(
     private var loadJob: kotlinx.coroutines.Job? = null
     private var reloadRequested = false
     private var messageRevision = 0L
+    private val receiptsInFlight = mutableSetOf<String>()
     private fun ownsSession() = ownerEmail.isNotBlank() && ownerEmail.equals(sessionManager.currentEmail, ignoreCase = true)
 
     val isStaff: Boolean get() = sessionManager.currentRole in setOf("OPERATOR", "ADMIN", "ATENDENTE")
@@ -183,19 +184,42 @@ class MessageViewModel(
         }
     }
 
+
+    private fun isRecipient(message: MessageDto): Boolean = ownsSession() &&
+        !message.senderId.equals(ownerEmail, ignoreCase = true) &&
+        (!isStaff || (canReply && message.senderId.equals(_uiState.value.ticket?.customerEmail, ignoreCase = true)))
+
+    fun markVisibleRead(ids: Set<String>, resumed: Boolean) {
+        if (!resumed || !ownsSession()) return
+        acknowledge(_uiState.value.messages.filter { it.id in ids && isRecipient(it) && it.status in setOf("ENVIADO", "ENTREGUE") }, "LIDO")
+    }
+
     private fun markDelivered(messages: List<MessageDto>) {
-        val currentEmail = sessionManager.currentEmail ?: return
-        if (isStaff && !canReply) return
-        viewModelScope.launch {
-            messages
-                .filter { (if (isStaff) it.senderId == _uiState.value.ticket?.customerEmail else it.senderId != currentEmail) && it.status == "ENVIADO" }
-                .forEach { msg ->
-                    try {
-                        messageApi.updateStatus(msg.id, mapOf("status" to "ENTREGUE"))
-                    } catch (_: Exception) {}
-                }
+        acknowledge(messages.filter { isRecipient(it) && it.status == "ENVIADO" }, "ENTREGUE")
+    }
+
+    private fun acknowledge(messages: List<MessageDto>, status: String) {
+        messages.forEach { message ->
+            val key = "${message.id}:$status"
+            if (!receiptsInFlight.add(key)) return@forEach
+            viewModelScope.launch {
+                try {
+                    if (!ownsSession()) return@launch
+                    val updated = messageApi.updateStatus(message.id, mapOf("status" to status))
+                    if (!ownsSession()) return@launch
+                    messageRevision++
+                    _uiState.update { state -> state.copy(messages = state.messages.map {
+                        if (it.id == updated.id && receiptRank(updated.status) >= receiptRank(it.status))
+                            it.copy(status = updated.status) else it
+                    }) }
+                } catch (e: kotlinx.coroutines.CancellationException) { throw e
+                } catch (_: Exception) { /* Retry on the next load/visibility update. */
+                } finally { receiptsInFlight.remove(key) }
+            }
         }
     }
+
+    private fun receiptRank(status: String) = when (status) { "LIDO" -> 2; "ENTREGUE" -> 1; else -> 0 }
 
     fun clearDeleteError() { _uiState.update { it.copy(deleteError = null) } }
 

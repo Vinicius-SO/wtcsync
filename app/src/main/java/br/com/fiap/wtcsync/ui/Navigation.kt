@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -64,13 +65,34 @@ import br.com.fiap.wtcsync.ui.messages.MessageScreen
 import br.com.fiap.wtcsync.data.model.enums.UserRole
 
 @Composable
-fun Navigation(navController: NavHostController) {
+fun Navigation(navController: NavHostController,
+    notificationTarget: br.com.fiap.wtcsync.util.ChatNotificationTarget? = null,
+    onNotificationConsumed: () -> Unit = {}) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(application)
     )
     val role by authViewModel.currentRole.collectAsState()
+
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val route = currentEntry?.destination?.route
+    val app = application as WtcSyncApp
+    LaunchedEffect(notificationTarget, role, route) {
+        val target = notificationTarget ?: return@LaunchedEffect
+        if (role == null || route in listOf(null, "entry", "login", "register")) return@LaunchedEffect
+        if (!target.matches(app.sessionManager.currentEmail)) {
+            onNotificationConsumed()
+        } else if (role == UserRole.OPERATOR || role == UserRole.ATENDENTE) {
+            navController.navigate("message_screen/${Uri.encode(target.customerId)}/${Uri.encode("Atendimento")}") {
+                popUpTo("home")
+                launchSingleTop = true
+            }
+            onNotificationConsumed()
+        } else if (route != "home") {
+            navController.navigate("home") { popUpTo("home"); launchSingleTop = true }
+        }
+    }
 
     NavHost(navController = navController, startDestination = "entry") {
         composable("entry") {
@@ -111,7 +133,10 @@ fun Navigation(navController: NavHostController) {
             HomeScreen(
                 navController = navController,
                 userRole = role,
+                openChatRequest = notificationTarget?.takeIf { it.matches(app.sessionManager.currentEmail) }?.requestId,
+                onChatOpened = onNotificationConsumed,
                 onLogout = {
+                    app.pushRegistration.revoke(app.sessionManager.currentToken)
                     authViewModel.logout()
                     navController.navigate("entry") { popUpTo("home") { inclusive = true } }
                 }
@@ -214,6 +239,8 @@ fun Navigation(navController: NavHostController) {
 private fun HomeScreen(
     navController: NavHostController,
     userRole: UserRole?,
+    openChatRequest: String? = null,
+    onChatOpened: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     if (userRole == null) {
@@ -223,6 +250,9 @@ private fun HomeScreen(
     if (userRole == UserRole.CLIENTE) {
         val tabs = listOf(BottomNavTab.CHAT, BottomNavTab.ULTIMA_CAMPANHA, BottomNavTab.MEU_PERFIL)
         var clientTab by rememberSaveable { mutableStateOf(BottomNavTab.CHAT) }
+        LaunchedEffect(openChatRequest) {
+            if (openChatRequest != null) { clientTab = BottomNavTab.CHAT; onChatOpened() }
+        }
         val tabState = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
         Scaffold(
             topBar = { AccountBar("Cliente", onLogout) },

@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.theme.*
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -69,7 +70,7 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(BackgroundCream)
     ) {
         // --- CONTEÚDO DA TELA ---
         Column(
@@ -88,7 +89,7 @@ fun RegisterScreen(
                 Icon(
                     Icons.Default.ArrowBack,
                     contentDescription = "Voltar",
-                    tint = Color.Black
+                    tint = TextPrimary
                 )
             }
 
@@ -107,7 +108,7 @@ fun RegisterScreen(
                 text = "Cadastro",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = TextPrimary
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -116,7 +117,7 @@ fun RegisterScreen(
             Text(
                 text = "Nome",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextSecondary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -137,14 +138,14 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Cadastro de cliente. O acesso de operador é definido pela administração.", color = Color.Gray)
+            Text("Cadastro de cliente. O acesso de operador é definido pela administração.", color = TextSecondary)
             Spacer(modifier = Modifier.height(16.dp))
 
             // Campo Email
             Text(
                 text = "Email",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextSecondary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -169,7 +170,7 @@ fun RegisterScreen(
             Text(
                 text = "Senha",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextSecondary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -203,7 +204,7 @@ fun RegisterScreen(
             Text(
                 text = "Confirmar senha",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextSecondary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             OutlinedTextField(
@@ -262,7 +263,7 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFC107)
+                    containerColor = YellowPrimary, contentColor = Color(0xFF302600)
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -273,7 +274,7 @@ fun RegisterScreen(
                     text = buttonText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color(0xFF302600)
                 )
             }
 

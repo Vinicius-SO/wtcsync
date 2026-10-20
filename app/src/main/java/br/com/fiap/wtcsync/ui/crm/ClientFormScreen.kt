@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,7 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -97,8 +98,8 @@ fun ClientFormScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BorderColor,
                         unfocusedBorderColor = BorderColor,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
+                        focusedContainerColor = CardSurface,
+                        unfocusedContainerColor = CardSurface
                     )
                 )
             },
@@ -124,8 +125,8 @@ fun ClientFormScreen(
                 .fillMaxWidth()
                 .background(HeaderBg)
                 .height(56.dp)
-                .drawBehind {
-                    drawLine(BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
+                .themedDrawBehind { palette ->
+                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
                 }
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -164,10 +165,10 @@ fun ClientFormScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFFEBEE))
+                    .background(ErrorBg)
                     .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
-                Text(uiState.error!!, color = Color(0xFFB71C1C), fontSize = 13.sp)
+                Text(uiState.error!!, color = ErrorText, fontSize = 13.sp)
             }
         }
 
@@ -181,7 +182,7 @@ fun ClientFormScreen(
             Surface(
                 border = BorderStroke(1.5.dp, ListBorderLight),
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White
+                color = CardSurface
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -192,7 +193,7 @@ fun ClientFormScreen(
                         Surface(
                             modifier = Modifier.size(80.dp),
                             shape = CircleShape,
-                            color = Color(0xFFE5E5E5),
+                            color = InputDisabled,
                             border = BorderStroke(2.dp, ListBorderLight)
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -256,7 +257,7 @@ fun ClientFormScreen(
                                     onClick = { viewModel.onStatusChange(option) },
                                     modifier = Modifier.weight(1f).height(44.dp),
                                     shape = RoundedCornerShape(8.dp),
-                                    color = if (isSelected) YellowBadge else Color.White,
+                                    color = if (isSelected) YellowBadge else CardSurface,
                                     border = BorderStroke(
                                         if (isSelected) 2.dp else 1.5.dp,
                                         if (isSelected) BorderColor else ListBorderLight
@@ -351,6 +352,6 @@ private fun FormField(label: String, content: @Composable () -> Unit) {
 private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = BorderColor,
     unfocusedBorderColor = BorderColor,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White
+    focusedContainerColor = CardSurface,
+    unfocusedContainerColor = CardSurface
 )

@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.segments.ui.list
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -55,9 +56,9 @@ fun SegmentListScreen(
                 .fillMaxWidth()
                 .background(HeaderBg)
                 .height(56.dp)
-                .drawBehind {
+                .themedDrawBehind { palette ->
                     drawLine(
-                        color = BorderColor,
+                        color = palette.BorderColor,
                         start = Offset(0f, size.height),
                         end = Offset(size.width, size.height),
                         strokeWidth = 2f
@@ -116,7 +117,7 @@ fun SegmentListScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(0.dp),
-                        color = Color.White,
+                        color = CardSurface,
                         border = BorderStroke(2.dp, BorderColor)
                     ) {
                         Box(
@@ -205,7 +206,7 @@ private fun SegmentCard(
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor)
             .clickable(onClick = onClick),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -261,7 +262,7 @@ private fun SegmentCard(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(0.dp),
-                    color = Color.White,
+                    color = CardSurface,
                     border = BorderStroke(2.dp, BorderColor)
                 ) {
                     Box(
@@ -304,7 +305,7 @@ private fun SegmentCard(
 private fun SegmentSkeletonCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -314,18 +315,18 @@ private fun SegmentSkeletonCard() {
             Box(
                 modifier = Modifier
                     .size(160.dp, 18.dp)
-                    .background(Color(0xFFE8E5E0), RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, RoundedCornerShape(2.dp))
             )
             Box(
                 modifier = Modifier
                     .size(100.dp, 14.dp)
-                    .background(Color(0xFFE8E5E0), RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, RoundedCornerShape(2.dp))
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(36.dp)
-                    .background(Color(0xFFE8E5E0), RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, RoundedCornerShape(2.dp))
             )
         }
     }
@@ -336,7 +337,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -382,7 +383,7 @@ private fun EmptyState(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(

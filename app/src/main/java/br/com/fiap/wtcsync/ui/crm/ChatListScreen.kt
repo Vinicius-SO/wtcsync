@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -94,8 +95,8 @@ fun ChatListScreen(
                 .fillMaxWidth()
                 .background(HeaderBg)
                 .height(56.dp)
-                .drawBehind {
-                    drawLine(BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
+                .themedDrawBehind { palette ->
+                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
                 }
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,8 +151,8 @@ fun ChatListScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BorderColor,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedContainerColor = CardSurface,
+                    unfocusedContainerColor = CardSurface
                 )
             )
         }
@@ -168,7 +169,7 @@ fun ChatListScreen(
 
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = YellowBadge)
+                CircularProgressIndicator(color = SaveText)
             }
             uiState.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Erro: ${uiState.error}", color = TextSecondary)

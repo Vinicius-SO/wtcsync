@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,7 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -105,7 +106,7 @@ fun CampanhaScreen(
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Fechar", color = YellowBadge, fontWeight = FontWeight.Bold)
+                    Text("Fechar", color = SaveText, fontWeight = FontWeight.Bold)
                 }
             },
             title = {
@@ -113,7 +114,7 @@ fun CampanhaScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.sino),
                         contentDescription = null,
-                        tint = YellowBadge,
+                        tint = SaveText,
                         modifier = Modifier.size(28.dp)
                     )
                     Spacer(Modifier.width(8.dp))
@@ -130,11 +131,11 @@ fun CampanhaScreen(
                     Text(
                         "Fique atento! Novas promoções aparecerão aqui assim que forem lançadas.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = TextSecondary
                     )
                 }
             },
-            containerColor = Color.White,
+            containerColor = CardSurface,
             tonalElevation = 6.dp
         )
     }
@@ -150,9 +151,9 @@ private fun Header(
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
+            .themedDrawBehind { palette ->
                 drawLine(
-                    color = BorderColor,
+                    color = palette.BorderColor,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = 2f
@@ -232,7 +233,7 @@ private fun EventBanner() {
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Box(
@@ -328,7 +329,7 @@ private fun DescriptionCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, BorderColor)
     ) {
         Column(
@@ -370,7 +371,7 @@ private fun ActionButtons() {
 
         ActionButton(
             text = "VER PROGRAMAÇÃO",
-            bgColor = Color.White,
+            bgColor = CardSurface,
             textColor = TextPrimary,
             icon = Icons.Default.ViewAgenda,
             onClick = { }

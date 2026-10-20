@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,7 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -94,8 +95,8 @@ fun ClientesScreen(
                 .fillMaxWidth()
                 .background(HeaderBg)
                 .height(56.dp)
-                .drawBehind {
-                    drawLine(BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
+                .themedDrawBehind { palette ->
+                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
                 }
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,7 +134,7 @@ fun ClientesScreen(
 
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = YellowBadge)
+                CircularProgressIndicator(color = SaveText)
             }
             uiState.error != null -> Column(
                 Modifier.fillMaxSize().padding(32.dp),
@@ -146,7 +147,7 @@ fun ClientesScreen(
                 Spacer(Modifier.height(24.dp))
                 Button(
                     onClick = { viewModel.loadClients() },
-                    colors = ButtonDefaults.buttonColors(containerColor = YellowBadge)
+                    colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
                 ) {
                     Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp), tint = TextPrimary)
                     Spacer(Modifier.width(8.dp))
@@ -168,7 +169,7 @@ fun ClientesScreen(
                     Spacer(Modifier.height(12.dp))
                     // Search field
                     Surface(
-                        color = Color.White,
+                        color = CardSurface,
                         border = BorderStroke(2.dp, BorderColor),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -209,7 +210,7 @@ fun ClientesScreen(
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                                     fontSize = 13.sp,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isActive) Color.White else TextSecondary
+                                    color = if (isActive) BackgroundCream else TextSecondary
                                 )
                             }
                         }
@@ -243,7 +244,7 @@ private fun ClientCard(cliente: ClientDto, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = CardSurface,
         border = BorderStroke(2.dp, ListBorderLight),
         shadowElevation = 2.dp
     ) {

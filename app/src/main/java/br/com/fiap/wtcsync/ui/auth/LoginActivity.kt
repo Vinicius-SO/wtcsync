@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.auth
 
+import br.com.fiap.wtcsync.theme.*
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -89,7 +90,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("JoeDoe@WTC.com", color = Color.Gray) }, // Placeholder
+                placeholder = { Text("JoeDoe@WTC.com", color = TextSecondary) }, // Placeholder
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth()
@@ -107,7 +108,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = senha,
                 onValueChange = { senha = it },
-                placeholder = { Text("**************", color = Color.Gray) }, // Placeholder
+                placeholder = { Text("**************", color = TextSecondary) }, // Placeholder
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(), // Para ocultar a senha
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

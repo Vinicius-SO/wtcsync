@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.messages
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
@@ -47,7 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import br.com.fiap.wtcsync.theme.themedDrawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -144,7 +145,7 @@ fun MessageScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = YellowBadge, strokeWidth = 2.dp)
+                CircularProgressIndicator(color = SaveText, strokeWidth = 2.dp)
             }
 
             uiState.error != null -> Box(
@@ -201,8 +202,8 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
             .fillMaxWidth()
             .background(HeaderBg)
             .height(56.dp)
-            .drawBehind {
-                drawLine(BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
+            .themedDrawBehind { palette ->
+                drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
             }
             .padding(end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -252,7 +253,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
 @Composable
 fun MessageBubble(message: MessageDto, currentEmail: String) {
     val isMe = message.senderId == currentEmail
-    val bubbleColor = if (isMe) YellowBadge else Color.White
+    val bubbleColor = if (isMe) YellowBadge else CardSurface
     val textColor = if (isMe) YellowText else TextPrimary
     val border = if (isMe) BorderStroke(1.5.dp, BorderColor) else BorderStroke(1.5.dp, ListBorderLight)
     val alignment = if (isMe) Alignment.CenterEnd else Alignment.CenterStart
@@ -287,11 +288,11 @@ fun MessageBubble(message: MessageDto, currentEmail: String) {
                     Text(
                         text = formatTime(message.createdAt),
                         fontSize = 10.sp,
-                        color = textColor.copy(alpha = 0.6f)
+                        color = textColor.copy(alpha = 0.8f)
                     )
                     if (isMe) {
                         val delivered = message.status == "ENTREGUE"
-                        val statusColor = if (delivered) Color(0xFF1565C0) else BorderColor
+                        val statusColor = if (delivered) InfoText else BorderColor
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -327,8 +328,8 @@ private fun ChatInputBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(HeaderBg)
-            .drawBehind {
-                drawLine(BorderColor, Offset(0f, 0f), Offset(size.width, 0f), 2f)
+            .themedDrawBehind { palette ->
+                drawLine(palette.BorderColor, Offset(0f, 0f), Offset(size.width, 0f), 2f)
             }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -336,7 +337,7 @@ private fun ChatInputBar(
         Surface(
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(24.dp),
-            color = Color.White,
+            color = CardSurface,
             border = BorderStroke(1.5.dp, ListBorderLight)
         ) {
             TextField(

@@ -132,7 +132,7 @@ fun WtcAccountBar(label: String, onLogout: () -> Unit) {
 
 @Composable
 fun WtcStatePanel(title: String, message: String? = null, onRetry: (() -> Unit)? = null,
-    onBack: (() -> Unit)? = null, modifier: Modifier = Modifier) {
+    onBack: (() -> Unit)? = null, modifier: Modifier = Modifier, action: @Composable () -> Unit = {}) {
     Column(modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
         Text(title, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
@@ -145,6 +145,7 @@ fun WtcStatePanel(title: String, message: String? = null, onRetry: (() -> Unit)?
             WtcButton(onRetry) { Text("Tentar novamente") }
         }
         if (onBack != null) WtcButton(onBack, kind = WtcButtonKind.Text) { Text("Voltar") }
+        action()
     }
 }
 

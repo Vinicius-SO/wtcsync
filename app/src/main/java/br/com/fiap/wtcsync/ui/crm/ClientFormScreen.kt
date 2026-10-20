@@ -210,25 +210,7 @@ fun ClientFormScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("Active", "Inactive", "Prospect").forEach { option ->
                                 val isSelected = uiState.status == option
-                                Surface(
-                                    onClick = { viewModel.onStatusChange(option) },
-                                    modifier = Modifier.weight(1f).height(44.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = if (isSelected) YellowBadge else CardSurface,
-                                    border = BorderStroke(
-                                        if (isSelected) 2.dp else 1.5.dp,
-                                        if (isSelected) BorderColor else ListBorderLight
-                                    )
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            text = option,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) YellowText else TextSecondary
-                                        )
-                                    }
-                                }
+                                WtcFilterChip(option, isSelected, onClick = { viewModel.onStatusChange(option) }, modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -264,19 +246,7 @@ fun ClientFormScreen(
                             uiState.tags.forEach { tag ->
                                 TagChip(label = tag, onRemove = { viewModel.removeTag(tag) })
                             }
-                            Surface(
-                                onClick = { showTagDialog = true },
-                                shape = RoundedCornerShape(50),
-                                color = Color.Transparent,
-                                border = BorderStroke(1.5.dp, BorderColor)
-                            ) {
-                                Text(
-                                    "+ Adicionar",
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    fontSize = 12.sp,
-                                    color = TextSecondary
-                                )
-                            }
+                            WtcButton(onClick = { showTagDialog = true }, kind = WtcButtonKind.Secondary) { Text("Adicionar tag") }
                         }
                     }
 

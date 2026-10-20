@@ -143,20 +143,7 @@ fun CreateSegmentScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Todos", "Active", "Inactive").forEach { option ->
                             val selected = state.status == option
-                            Surface(
-                                onClick = { viewModel.onStatusChanged(option) },
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (selected) YellowBadge else CardSurface,
-                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
-                            ) {
-                                Text(
-                                    text = option,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                    fontSize = 14.sp,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selected) YellowText else TextSecondary
-                                )
-                            }
+                            WtcFilterChip(option, selected, onClick = { viewModel.onStatusChanged(option) })
                         }
                     }
 

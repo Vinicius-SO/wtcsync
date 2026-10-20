@@ -312,31 +312,7 @@ private fun ActionButtonsSection(
                     color = TextPrimary,
                     letterSpacing = 0.44.sp
                 )
-                Surface(
-                    onClick = onAddAction,
-                    shape = RoundedCornerShape(8.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = YellowText,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "Adicionar",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = YellowText
-                        )
-                    }
-                }
+                WtcButton(onClick = onAddAction, kind = WtcButtonKind.Secondary) { Text("Adicionar ação") }
             }
 
             actions.forEachIndexed { index, action ->

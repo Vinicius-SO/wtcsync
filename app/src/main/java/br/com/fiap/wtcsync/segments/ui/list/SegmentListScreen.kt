@@ -293,51 +293,7 @@ private fun EmptyState(
     showCreateButton: Boolean,
     onCreateClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = "Crie novos filtros",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Text(
-                text = "Organize sua base de contatos por interesses ou localização.",
-                fontSize = 13.sp,
-                color = TextSecondary,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            if (showCreateButton) {
-                Surface(
-                    onClick = onCreateClick,
-                    shape = RoundedCornerShape(8.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Text(
-                        text = "+ Novo Segmento",
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText
-                    )
-                }
-            }
-        }
-    }
+    WtcStatePanel("Nenhum segmento encontrado", action = {
+        if (showCreateButton) { Spacer(Modifier.height(16.dp)); WtcCreateButton(onCreateClick) }
+    })
 }

@@ -10,7 +10,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 class ChatMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
-        (application as WtcSyncApp).pushRegistration.refresh()
+        (application as WtcSyncApp).pushRegistration.refresh(force = true)
     }
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data

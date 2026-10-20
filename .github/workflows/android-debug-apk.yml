@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/durable-push
       - feature/read-notifications
       - feature/ticket-lifecycle
       - feature/reliable-chat

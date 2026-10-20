@@ -26,11 +26,27 @@ data class ChatListUiState(
     val connected: Boolean = false,
     val searchQuery: String = "",
     val unreadCounts: Map<String, Int> = emptyMap(),
-    val lastMessages: Map<String, String> = emptyMap()
+    val lastMessages: Map<String, String> = emptyMap(),
+    val lastMessageTimes: Map<String, Long> = emptyMap()
 ) {
     val filteredClients: List<ClientDto>
-        get() = if (searchQuery.isEmpty()) clients
-                else clients.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        get() {
+            val requestedTimes = tickets.associate { it.customerId to activityTime(it.requestedAt) }
+            return clients
+                .filter { searchQuery.isEmpty() || it.name.contains(searchQuery, ignoreCase = true) }
+                .sortedWith(compareByDescending<ClientDto> {
+                    lastMessageTimes[it.id] ?: requestedTimes[it.id] ?: Long.MIN_VALUE
+                }.thenBy { it.id })
+        }
+}
+
+// API messages use UTC local timestamps; support queue timestamps include their offset.
+private fun activityTime(value: String?): Long {
+    if (value.isNullOrBlank()) return Long.MIN_VALUE
+    return runCatching { java.time.Instant.parse(value).toEpochMilli() }.getOrElse {
+        runCatching { java.time.LocalDateTime.parse(value).toInstant(java.time.ZoneOffset.UTC).toEpochMilli() }
+            .getOrDefault(Long.MIN_VALUE)
+    }
 }
 
 class ChatListViewModel(
@@ -86,6 +102,7 @@ class ChatListViewModel(
         val currentEmail = sessionManager.currentEmail ?: return
         val newCounts = mutableMapOf<String, Int>()
         val newLastMessages = mutableMapOf<String, String>()
+        val newLastMessageTimes = mutableMapOf<String, Long>()
 
         coroutineScope {
             clients.map { client ->
@@ -101,8 +118,10 @@ class ChatListViewModel(
                         val received = messages.filter { it.senderId == customerEmail }
 
                         newCounts[client.id] = received.count { it.status == "ENVIADO" }
-                        newLastMessages[client.id] = messages
-                            .maxByOrNull { it.createdAt ?: "" }?.text ?: ""
+                        val latest = messages.maxByOrNull { activityTime(it.createdAt) }
+                        newLastMessages[client.id] = latest?.text ?: ""
+                        latest?.let { activityTime(it.createdAt) }?.takeIf { it != Long.MIN_VALUE }
+                            ?.let { newLastMessageTimes[client.id] = it }
 
                         if (initialLoadDone) {
                             received
@@ -120,7 +139,11 @@ class ChatListViewModel(
         }
 
         initialLoadDone = true
-        _uiState.update { it.copy(unreadCounts = newCounts, lastMessages = newLastMessages) }
+        _uiState.update { it.copy(
+            unreadCounts = newCounts,
+            lastMessages = it.lastMessages + newLastMessages,
+            lastMessageTimes = it.lastMessageTimes + newLastMessageTimes
+        ) }
     }
 
     fun onSearchQueryChange(query: String) {

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/conversation-order
       - fix/night-mode
       - fix/client-edit-profile
       - feature/support-queue

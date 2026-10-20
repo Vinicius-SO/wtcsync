@@ -71,6 +71,9 @@ private class FakeMessages : MessageApi {
 }
 
 private class FakeSupport : SupportApi {
+    override suspend fun history(id: String) = emptyList<SupportHistoryEntry>()
+    override suspend fun close(id: String) = get(id).copy(status = "CLOSED")
+    override suspend fun reopen(id: String) = get(id).copy(status = "WAITING")
     override suspend fun get(id: String) = SupportTicket(id, "Cliente", OWNER, null, null)
     override suspend fun queue() = emptyList<SupportTicket>()
     override suspend fun claim(id: String) = get(id)

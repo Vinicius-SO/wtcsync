@@ -3,6 +3,10 @@ package br.com.fiap.wtcsync.ui.crm
 import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.saveable.rememberSaveable
+import br.com.fiap.wtcsync.data.remote.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -80,14 +84,8 @@ fun ChatListScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     var isSearching by remember { mutableStateOf(false) }
-    var selectedPill by remember { mutableStateOf("Todas") }
-
-    val displayedClients = when (selectedPill) {
-        "Aguardando" -> uiState.filteredClients.filter { client -> uiState.tickets.any { it.customerId == client.id && it.assignedTo == null } }
-        "Meus" -> uiState.filteredClients.filter { client -> uiState.tickets.any { it.customerId == client.id && it.assignedTo == app.sessionManager.currentEmail } }
-        "Não lidas" -> uiState.filteredClients.filter { (uiState.unreadCounts[it.id] ?: 0) > 0 }
-        else        -> uiState.filteredClients
-    }
+    var selectedFilter by rememberSaveable { mutableStateOf(TicketFilter.OPEN) }
+    val displayedClients = uiState.clientsForFilter(selectedFilter, app.sessionManager.currentEmail)
 
     Column(modifier = Modifier.fillMaxSize().background(BackgroundCream)) {
         // Header
@@ -116,20 +114,22 @@ fun ChatListScreen(
 
         // Filter pills
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Todas", "Aguardando", "Meus").forEach { pill ->
-                ChatFilterPill(label = pill, isActive = selectedPill == pill, onClick = { selectedPill = pill })
+            TicketFilter.entries.forEach { filter ->
+                ChatFilterPill(label = filter.label, isActive = selectedFilter == filter, onClick = { selectedFilter = filter })
             }
         }
 
+        uiState.error?.let { message ->
+            WtcFeedback(message, onDismiss = { viewModel.dismissError() })
+            WtcButton({ viewModel.loadClients(silent = true) }, kind = WtcButtonKind.Text) { Text("Tentar novamente") }
+        }
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            uiState.isLoading && uiState.clients.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SaveText)
             }
-            uiState.error != null -> WtcStatePanel("Não foi possível carregar as conversas", uiState.error,
-                onRetry = { viewModel.loadClients() })
             displayedClients.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhuma conversa encontrada", color = TextSecondary)
             }
@@ -138,7 +138,8 @@ fun ChatListScreen(
                     items(displayedClients, key = { it.id }) { cliente ->
                         ChatConversationItem(
                             cliente = cliente,
-                            lastMessage = (uiState.tickets.firstOrNull { it.customerId == cliente.id }?.assignedTo?.let { "Em atendimento · $it" } ?: "Aguardando atendimento") + " · " + (uiState.lastMessages[cliente.id] ?: ""),
+                            lastMessage = uiState.lastMessages[cliente.id] ?: "",
+                            ticket = uiState.tickets.firstOrNull { it.customerId == cliente.id },
                             unreadCount = uiState.unreadCounts[cliente.id] ?: 0,
                             onClick = { onChatClick(cliente.id, cliente.name) }
                         )
@@ -160,6 +161,7 @@ private fun ChatFilterPill(label: String, isActive: Boolean, onClick: () -> Unit
 private fun ChatConversationItem(
     cliente: ClientDto,
     lastMessage: String,
+    ticket: SupportTicket?,
     unreadCount: Int,
     onClick: () -> Unit
 ) {
@@ -174,6 +176,8 @@ private fun ChatConversationItem(
         ClientAvatar(name = cliente.name, size = 44.dp, showOnlineIndicator = false)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
+            Text(ticket?.statusLabel() ?: "Aguardando", color = if (ticket?.isClosed == true) SuccessText else TextSecondary,
+                fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             Text(
                 text = cliente.name,
                 fontSize = 15.sp,
@@ -187,6 +191,8 @@ private fun ChatConversationItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (ticket?.assignedTo != null && !ticket.isClosed) Text("Responsável: ${ticket.assignedTo}",
+                color = TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {

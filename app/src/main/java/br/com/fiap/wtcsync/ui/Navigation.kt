@@ -248,19 +248,19 @@ private fun HomeScreen(
         return
     }
     if (userRole == UserRole.CLIENTE) {
-        val tabs = listOf(BottomNavTab.CHAT, BottomNavTab.ULTIMA_CAMPANHA, BottomNavTab.MEU_PERFIL)
+        val tabs = listOf(BottomNavTab.CHAT, BottomNavTab.ULTIMA_CAMPANHA, BottomNavTab.MEU_PERFIL, BottomNavTab.OUTRAS)
         var clientTab by rememberSaveable { mutableStateOf(BottomNavTab.CHAT) }
         LaunchedEffect(openChatRequest) {
             if (openChatRequest != null) { clientTab = BottomNavTab.CHAT; onChatOpened() }
         }
         val tabState = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
         Scaffold(
-            topBar = { AccountBar("Cliente", onLogout) },
             bottomBar = { BottomNavBar(tabs, clientTab, { clientTab = it }) }
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 tabState.SaveableStateProvider(clientTab) {
                     when (clientTab) {
+                        BottomNavTab.OUTRAS -> br.com.fiap.wtcsync.ui.client.ClientMoreScreen(onLogout)
                         BottomNavTab.MEU_PERFIL -> br.com.fiap.wtcsync.ui.client.ClientProfileScreen()
                         BottomNavTab.ULTIMA_CAMPANHA -> ClientCampaignScreen(
                             navController.context.applicationContext as Application)
@@ -345,7 +345,7 @@ private fun HomeScreen(
                         else -> {}
                     }
                 }
-                BottomNavTab.MEU_PERFIL, BottomNavTab.ULTIMA_CAMPANHA -> Unit
+                BottomNavTab.MEU_PERFIL, BottomNavTab.ULTIMA_CAMPANHA, BottomNavTab.OUTRAS -> Unit
                 BottomNavTab.CHAT -> ChatListScreen(
                     onChatClick = { id, name ->
                         navController.navigate(

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/inline-edit-client-menu
       - fix/durable-push
       - feature/read-notifications
       - feature/ticket-lifecycle

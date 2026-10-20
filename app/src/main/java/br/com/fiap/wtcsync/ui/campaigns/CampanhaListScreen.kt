@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -157,78 +158,7 @@ fun CampanhaListScreen(
 
 @Composable
 private fun ListHeader(onCreateClick: () -> Unit = {}) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.ListBorderLight,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(2.dp, ListBorderLight)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.wtcsync_logo),
-                    contentDescription = "Perfil",
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                )
-            }
-
-            Text(
-                text = "Campanhas",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                letterSpacing = (-0.18).sp
-            )
-        }
-
-        Surface(
-            modifier = Modifier
-                .shadow(2.dp, RoundedCornerShape(4.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f))
-                .clickable(onClick = onCreateClick),
-            shape = RoundedCornerShape(4.dp),
-            color = YellowBadge,
-            border = BorderStroke(2.dp, BorderColor)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = YellowText,
-                    modifier = Modifier.size(12.dp)
-                )
-                Text(
-                    text = "+ Novo",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = YellowText
-                )
-            }
-        }
-    }
+    WtcScreenHeader("Campanhas", actions = { WtcCreateButton(onCreateClick) })
 }
 
 @Composable

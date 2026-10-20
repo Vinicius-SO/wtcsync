@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -86,48 +87,7 @@ fun CampanhaCreateScreen(
 
 @Composable
 private fun CreateHeader(onCancelClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.BorderColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "CANCELAR",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextSecondary,
-            letterSpacing = 0.44.sp,
-            modifier = Modifier.clickable(onClick = onCancelClick)
-        )
-
-        Text(
-            text = "Nova Campanha",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            letterSpacing = (-0.18).sp
-        )
-
-        Text(
-            text = "SALVAR",
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            color = SaveText,
-            letterSpacing = 0.44.sp
-        )
-    }
+    WtcScreenHeader("Nova campanha", onBack = onCancelClick, backLabel = "Cancelar")
 }
 
 @Composable

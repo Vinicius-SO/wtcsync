@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.campaigns
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -105,8 +106,8 @@ fun CampanhaScreen(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Fechar", color = SaveText, fontWeight = FontWeight.Bold)
+                WtcButton(kind = WtcButtonKind.Text, onClick = { showDialog = false }) {
+                    Text("Fechar")
                 }
             },
             title = {
@@ -146,57 +147,11 @@ private fun Header(
     onBackClick: () -> Unit,
     onNotificationClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.BorderColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        HeaderButton(
-            onClick = onBackClick,
-            icon = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Voltar"
-        )
-
-        Text(
-            text = "Campanha",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            letterSpacing = (-0.18).sp
-        )
-
-        Surface(
-            onClick = onNotificationClick,
-            shape = RoundedCornerShape(8.dp),
-            color = HeaderBg,
-            border = BorderStroke(2.dp, BorderColor),
-            tonalElevation = 2.dp
-        ) {
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.sino),
-                    contentDescription = "Notificações",
-                    tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+    WtcScreenHeader("Campanha", onBack = onBackClick, actions = {
+        WtcButton(onNotificationClick, kind = WtcButtonKind.Text) {
+            Icon(painterResource(R.drawable.sino), contentDescription = "Notificações", modifier = Modifier.size(20.dp))
         }
-    }
+    })
 }
 
 @Composable
@@ -205,24 +160,8 @@ private fun HeaderButton(
     icon: ImageVector,
     contentDescription: String
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.shadow(2.dp, RoundedCornerShape(8.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(8.dp),
-        color = HeaderBg,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Box(
-            modifier = Modifier.size(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = TextPrimary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+    WtcButton(onClick, kind = WtcButtonKind.Secondary) {
+        Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(20.dp))
     }
 }
 

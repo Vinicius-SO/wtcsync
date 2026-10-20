@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.campaigns.ui.list
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -125,8 +126,7 @@ fun CampaignListScreen(
     ) {
         ListHeader(
             showCreateButton = userRole == UserRole.OPERATOR,
-            onCreateClick = onCreateClick,
-            userRole = userRole
+            onCreateClick = onCreateClick
         )
 
         if (state.isLoading) {
@@ -190,17 +190,15 @@ fun CampaignListScreen(
             title = { Text("Excluir campanha") },
             text = { Text("Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.") },
             confirmButton = {
-                TextButton(
-                    onClick = {
+                WtcButton(kind = WtcButtonKind.DangerText, onClick = {
                         viewModel.deleteCampaign(campaignToDelete!!)
                         campaignToDelete = null
-                    }
-                ) {
-                    Text("Excluir", color = ErrorText)
+                    }) {
+                    Text("Excluir")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { campaignToDelete = null }) {
+                WtcButton(kind = WtcButtonKind.Text, onClick = { campaignToDelete = null }) {
                     Text("Cancelar")
                 }
             }
@@ -211,81 +209,11 @@ fun CampaignListScreen(
 @Composable
 private fun ListHeader(
     showCreateButton: Boolean,
-    onCreateClick: () -> Unit,
-    userRole: UserRole? = null
+    onCreateClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(
-                    color = palette.ListBorderLight,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 2f
-                )
-            }
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = "Campanhas",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                letterSpacing = (-0.18).sp
-            )
-            if (userRole != null) {
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = if (userRole == UserRole.OPERATOR) ListSentBg else ListDraftBg
-                ) {
-                    Text(
-                        text = userRole.name,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (userRole == UserRole.OPERATOR) ListSentText else ListDraftText,
-                        letterSpacing = 0.4.sp
-                    )
-                }
-            }
-        }
-
-        if (showCreateButton) {
-            Surface(
-                modifier = Modifier
-                    .shadow(2.dp, RoundedCornerShape(4.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f))
-                    .clickable(onClick = onCreateClick),
-                shape = RoundedCornerShape(4.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = YellowText,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = "+ Novo",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = YellowText
-                    )
-                }
-            }
-        }
-    }
+    WtcScreenHeader("Campanhas", actions = {
+        if (showCreateButton) WtcCreateButton(onCreateClick)
+    })
 }
 
 @Composable
@@ -678,46 +606,19 @@ private fun EmptyState(onRetry: () -> Unit) {
             fontWeight = FontWeight.Medium,
             color = TextSecondary
         )
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+        WtcButton(onClick = onRetry) {
+            Icon(Icons.Default.Refresh,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Atualizar", color = TextPrimary)
+            Text("Atualizar")
         }
     }
 }
 
 @Composable
 private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Erro ao carregar campanhas",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = message,
-            fontSize = 14.sp,
-            color = TextSecondary
-        )
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = YellowBadge, contentColor = YellowText)
-        ) {
-            Text("Tentar novamente", color = TextPrimary)
-        }
-    }
+    WtcStatePanel("Não foi possível carregar as campanhas", message, onRetry = onRetry)
 }
 
 @Composable

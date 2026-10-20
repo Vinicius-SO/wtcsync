@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.messages
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -120,10 +122,8 @@ fun MessageScreen(
                 Text(if (owner == null) "Aguardando atendimento" else if (viewModel.isStaff) "Responsável: $owner" else "Em atendimento",
                     modifier = Modifier.weight(1f), color = TextSecondary, fontSize = 12.sp)
                 if (viewModel.isStaff && (owner == null || owner == currentEmail)) {
-                    androidx.compose.material3.TextButton(
-                        enabled = !uiState.changingAssignment && !uiState.isSending,
-                        onClick = { viewModel.changeAssignment(release = owner == currentEmail) }
-                    ) { Text(if (owner == currentEmail) "Devolver à fila" else "Assumir atendimento") }
+                    WtcButton(kind = WtcButtonKind.Text, enabled = !uiState.changingAssignment && !uiState.isSending,
+                onClick = { viewModel.changeAssignment(release = owner == currentEmail) }) { Text(if (owner == currentEmail) "Devolver à fila" else "Assumir atendimento") }
                 }
             }
             }
@@ -197,57 +197,13 @@ fun MessageScreen(
 
 @Composable
 private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackButton: Boolean, connectionLabel: String, onContactClick: (() -> Unit)?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HeaderBg)
-            .height(56.dp)
-            .themedDrawBehind { palette ->
-                drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
-            }
-            .padding(end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (showBackButton) IconButton(onClick = onBackClick) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Voltar",
-                tint = TextPrimary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-        ClientAvatar(name = contactName, size = 38.dp, showOnlineIndicator = false)
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 10.dp)
-                .then(if (onContactClick != null) Modifier.clickable(onClick = onContactClick) else Modifier)
-        ) {
-            Text(
-                text = contactName,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .background(Color(0xFF4CAF50), CircleShape)
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(connectionLabel, fontSize = 11.sp, color = TextSecondary)
-            }
-        }
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Mais opções",
-                tint = TextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
+    WtcScreenHeader(
+        title = contactName,
+        subtitle = connectionLabel,
+        onBack = if (showBackButton) onBackClick else null,
+        onTitleClick = onContactClick,
+        leading = { ClientAvatar(name = contactName, size = 38.dp); Spacer(Modifier.width(8.dp)) }
+    )
 }
 
 @Composable
@@ -359,25 +315,9 @@ private fun ChatInputBar(
             )
         }
         Spacer(Modifier.width(10.dp))
-        Surface(
-            onClick = onSendClick,
-            modifier = Modifier.size(48.dp),
-            shape = CircleShape,
-            color = YellowBadge,
-            border = BorderStroke(2.dp, BorderColor)
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                if (isSending) {
-                    CircularProgressIndicator(modifier = Modifier.size(22.dp), color = YellowText, strokeWidth = 2.dp)
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Enviar",
-                        tint = YellowText,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+        WtcButton(onClick = onSendClick, enabled = !isSending && text.isNotBlank()) {
+            if (isSending) CircularProgressIndicator(Modifier.size(20.dp), color = LocalContentColor.current, strokeWidth = 2.dp)
+            else Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar mensagem", modifier = Modifier.size(20.dp))
         }
     }
 }

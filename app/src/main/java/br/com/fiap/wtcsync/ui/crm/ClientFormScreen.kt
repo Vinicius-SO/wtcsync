@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -104,15 +105,15 @@ fun ClientFormScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                WtcButton(kind = WtcButtonKind.Text, onClick = {
                     viewModel.addTag(tagInput)
                     tagInput = ""
                     showTagDialog = false
-                }) { Text("Adicionar", color = SaveText, fontWeight = FontWeight.Bold) }
+                }) { Text("Adicionar") }
             },
             dismissButton = {
-                TextButton(onClick = { showTagDialog = false; tagInput = "" }) {
-                    Text("Cancelar", color = TextSecondary)
+                WtcButton(kind = WtcButtonKind.Text, onClick = { showTagDialog = false; tagInput = "" }) {
+                    Text("Cancelar")
                 }
             }
         )
@@ -120,57 +121,13 @@ fun ClientFormScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(BackgroundCream)) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeaderBg)
-                .height(56.dp)
-                .themedDrawBehind { palette ->
-                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
-                }
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                if (fromConversation) "VOLTAR À CONVERSA" else "CANCELAR",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextSecondary,
-                letterSpacing = 0.44.sp,
-                modifier = Modifier.clickable(onClick = onCancel)
-            )
-            Text(
-                if (clienteId == null) "Novo Cliente" else "Editar Cliente",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            if (uiState.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = SaveText, strokeWidth = 2.dp)
-            } else {
-                Text(
-                    "SALVAR",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SaveText,
-                    letterSpacing = 0.44.sp,
-                    modifier = Modifier.clickable { viewModel.save() }
-                )
-            }
-        }
+        WtcScreenHeader(if (clienteId == null) "Novo cliente" else "Editar cliente", onBack = onCancel,
+            backLabel = if (fromConversation) "Voltar à conversa" else "Cancelar", actions = {
+                WtcButton(onClick = viewModel::save, enabled = !uiState.isLoading, loading = uiState.isSaving) { Text("Salvar") }
+            })
 
         // Error banner
-        if (uiState.error != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(ErrorBg)
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
-            ) {
-                Text(uiState.error!!, color = ErrorText, fontSize = 13.sp)
-            }
-        }
+        if (uiState.error != null) WtcFeedback(uiState.error!!)
 
         Column(
             modifier = Modifier

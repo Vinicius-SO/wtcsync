@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.crm
 
+import br.com.fiap.wtcsync.ui.components.*
 import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -90,56 +91,12 @@ fun ChatListScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(BackgroundCream)) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeaderBg)
-                .height(56.dp)
-                .themedDrawBehind { palette ->
-                    drawLine(palette.BorderColor, Offset(0f, size.height), Offset(size.width, size.height), 2f)
-                }
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Surface(
-                    modifier = Modifier.size(32.dp),
-                    shape = androidx.compose.foundation.shape.CircleShape,
-                    color = ListBorderLight,
-                    border = BorderStroke(1.5.dp, BorderColor)
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp), tint = TextSecondary)
-                    }
-                }
-                Column {
-                    Text(if (uiState.connected) "Fila · tempo real" else "Fila · reconectando", fontSize = 11.sp, color = TextSecondary)
-                    Text("Mensagens", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                }
+        WtcScreenHeader("Mensagens", subtitle = if (uiState.connected) "Atualização em tempo real" else "Reconectando", actions = {
+            IconButton(onClick = { isSearching = !isSearching }) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar conversa", tint = TextSecondary, modifier = Modifier.size(20.dp))
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { isSearching = !isSearching }) {
-                    Icon(Icons.Default.Search, contentDescription = "Buscar", tint = TextSecondary, modifier = Modifier.size(22.dp))
-                }
-                Spacer(Modifier.width(4.dp))
-                Surface(
-                    modifier = Modifier.shadow(2.dp, RoundedCornerShape(4.dp)).clickable(onClick = onCreateClick),
-                    shape = RoundedCornerShape(4.dp),
-                    color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = YellowText, modifier = Modifier.size(12.dp))
-                        Text("Novo", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = YellowText)
-                    }
-                }
-            }
-        }
+            WtcCreateButton(onCreateClick)
+        })
 
         if (isSearching) {
             OutlinedTextField(
@@ -171,9 +128,8 @@ fun ChatListScreen(
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = SaveText)
             }
-            uiState.error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Erro: ${uiState.error}", color = TextSecondary)
-            }
+            uiState.error != null -> WtcStatePanel("Não foi possível carregar as conversas", uiState.error,
+                onRetry = { viewModel.loadClients() })
             displayedClients.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Nenhuma conversa encontrada", color = TextSecondary)
             }
@@ -197,20 +153,7 @@ fun ChatListScreen(
 
 @Composable
 private fun ChatFilterPill(label: String, isActive: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = if (isActive) YellowBadge else Color.Transparent,
-        border = BorderStroke(1.5.dp, if (isActive) BorderColor else ListBorderLight)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 13.sp,
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-            color = if (isActive) YellowText else TextSecondary
-        )
-    }
+    WtcFilterChip(label, isActive, onClick)
 }
 
 @Composable

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - refactor/shared-components
       - fix/conversation-order
       - fix/night-mode
       - fix/client-edit-profile

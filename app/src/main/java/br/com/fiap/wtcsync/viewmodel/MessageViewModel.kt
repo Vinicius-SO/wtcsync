@@ -26,7 +26,10 @@ data class MessageUiState(
     val changingAssignment: Boolean = false,
     val isEditing: Boolean = false,
     val editError: String? = null,
-    val editedCount: Int = 0
+    val editedCount: Int = 0,
+    val isDeleting: Boolean = false,
+    val deleteError: String? = null,
+    val deletedCount: Int = 0
 )
 
 class MessageViewModel(
@@ -38,6 +41,8 @@ class MessageViewModel(
 
     private val _uiState = MutableStateFlow(MessageUiState())
     val uiState: StateFlow<MessageUiState> = _uiState.asStateFlow()
+
+    private val deletedMessageIds = mutableSetOf<String>()
 
     val isStaff: Boolean get() = sessionManager.currentRole in setOf("OPERATOR", "ADMIN", "ATENDENTE")
     val canReply: Boolean get() = !isStaff || (_uiState.value.ticket?.assignedTo == sessionManager.currentEmail)
@@ -85,7 +90,7 @@ class MessageViewModel(
             try {
                 val ticket = supportApi.get(clienteId)
                 val messages = messageApi.getInbox(clienteId)
-                _uiState.update { it.copy(messages = messages, ticket = ticket, isLoading = false, error = null) }
+                _uiState.update { it.copy(messages = messages.filterNot { message -> message.id in deletedMessageIds }, ticket = ticket, isLoading = false, error = null) }
                 markDelivered(messages)
             } catch (e: kotlinx.coroutines.CancellationException) { throw e
             } catch (e: Exception) {
@@ -105,6 +110,39 @@ class MessageViewModel(
                         messageApi.updateStatus(msg.id, mapOf("status" to "ENTREGUE"))
                     } catch (_: Exception) {}
                 }
+        }
+    }
+
+    fun clearDeleteError() { _uiState.update { it.copy(deleteError = null) } }
+
+    fun deleteMessage(id: String) {
+        if (_uiState.value.isDeleting) return
+        val message = _uiState.value.messages.find { it.id == id }
+        if (message != null && !message.senderId.equals(sessionManager.currentEmail, ignoreCase = true)) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeleting = true, deleteError = null) }
+            try {
+                try {
+                    messageApi.deleteMessage(id)
+                } catch (e: retrofit2.HttpException) {
+                    // An earlier attempt may have succeeded despite a lost response.
+                    if (e.code() != 404) throw e
+                }
+                deletedMessageIds.add(id)
+                _uiState.update { state -> state.copy(
+                    messages = state.messages.filterNot { it.id == id },
+                    deletedCount = state.deletedCount + 1
+                ) }
+                loadConversation(silent = true)
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (e: Exception) {
+                val error = when ((e as? retrofit2.HttpException)?.code()) {
+                    401 -> "Sua sessão expirou. Entre novamente para apagar."
+                    403 -> "Você só pode apagar mensagens enviadas por você."
+                    else -> "Não foi possível apagar a mensagem. Tente novamente."
+                }
+                _uiState.update { it.copy(deleteError = error) }
+            } finally { _uiState.update { it.copy(isDeleting = false) } }
         }
     }
 

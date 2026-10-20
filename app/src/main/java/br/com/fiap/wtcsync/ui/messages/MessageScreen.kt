@@ -96,6 +96,20 @@ fun MessageScreen(
     var editingText by rememberSaveable(clienteId) { mutableStateOf("") }
     var originalText by rememberSaveable(clienteId) { mutableStateOf("") }
     var lastEditedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    var deletingId by rememberSaveable(clienteId) { mutableStateOf<String?>(null) }
+    var lastDeletedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    LaunchedEffect(uiState.deletedCount) {
+        if (uiState.deletedCount > lastDeletedCount) deletingId = null
+        lastDeletedCount = uiState.deletedCount
+    }
+    if (deletingId != null) {
+        DeleteMessageDialog(
+            deleting = uiState.isDeleting,
+            error = uiState.deleteError,
+            onDismiss = { deletingId = null; viewModel.clearDeleteError() },
+            onConfirm = { deletingId?.let { viewModel.deleteMessage(it) } }
+        )
+    }
     LaunchedEffect(uiState.editedCount) {
         if (uiState.editedCount > lastEditedCount) editingId = null
         lastEditedCount = uiState.editedCount
@@ -214,6 +228,9 @@ fun MessageScreen(
                         editingId = message.id
                         editingText = message.text
                         originalText = message.text
+                    }, onDelete = {
+                        viewModel.clearDeleteError()
+                        deletingId = message.id
                     })
                 }
             }
@@ -233,7 +250,7 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
 }
 
 @Composable
-fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null) {
+fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
     val isMe = message.senderId.equals(currentEmail, ignoreCase = true)
     var menuExpanded by remember(message.id) { mutableStateOf(false) }
     val bubbleColor = if (isMe) YellowBadge else CardSurface
@@ -293,14 +310,18 @@ fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit
                                 modifier = Modifier.size(15.dp),
                                 tint = statusColor
                             )
-                            if (onEdit != null) Box {
+                            if (onEdit != null || onDelete != null) Box {
                                 IconButton(onClick = { menuExpanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = "Opções da mensagem", tint = textColor)
                                 }
                                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                                    DropdownMenuItem(text = { Text("Editar") }, onClick = {
+                                    if (onEdit != null) DropdownMenuItem(text = { Text("Editar") }, onClick = {
                                         menuExpanded = false
                                         onEdit()
+                                    })
+                                    if (onDelete != null) DropdownMenuItem(text = { Text("Apagar", color = ErrorText) }, onClick = {
+                                        menuExpanded = false
+                                        onDelete()
                                     })
                                 }
                             }

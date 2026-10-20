@@ -142,7 +142,7 @@ class ChatListViewModel(
         _uiState.update { it.copy(
             unreadCounts = newCounts,
             lastMessages = it.lastMessages + newLastMessages,
-            lastMessageTimes = it.lastMessageTimes + newLastMessageTimes
+            lastMessageTimes = (it.lastMessageTimes - newLastMessages.keys) + newLastMessageTimes
         ) }
     }
 

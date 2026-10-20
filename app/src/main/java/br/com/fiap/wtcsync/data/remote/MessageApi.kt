@@ -2,6 +2,7 @@ package br.com.fiap.wtcsync.data.remote
 
 import br.com.fiap.wtcsync.data.remote.dto.MessageDto
 import br.com.fiap.wtcsync.data.remote.dto.MessageRequest
+import retrofit2.http.DELETE
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -24,6 +25,9 @@ interface MessageApi {
 
     @POST("messages")
     suspend fun sendMessage(@Body request: MessageRequest): MessageDto
+
+    @DELETE("messages/{id}")
+    suspend fun deleteMessage(@Path("id") id: String)
 
     @PATCH("messages/{id}")
     suspend fun editMessage(@Path("id") id: String, @Body body: Map<String, String>): MessageDto

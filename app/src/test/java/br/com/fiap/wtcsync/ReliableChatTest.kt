@@ -24,7 +24,7 @@ private class MemoryOutbox : MessageOutbox {
     val entries = MutableStateFlow<List<PendingMessage>>(emptyList())
     var failWrites = false
     private fun PendingMessage.belongs(owner: String, customer: String) = ownerEmail.equals(owner, true) && customerId == customer
-    override fun observe(owner: String, customer: String) = entries.map { values -> values.filter { it.belongs(owner, customer) }.sortedBy { it.createdAt } }
+    override fun observe(owner: String, customer: String) = entries.map { values -> values.filter { it.belongs(owner, customer) } }
     override suspend fun list(owner: String, customer: String) = observe(owner, customer).first()
     override suspend fun enqueue(message: PendingMessage) { if (failWrites) throw IOException("disk"); entries.value += message }
     override suspend fun fail(message: PendingMessage) {
@@ -112,6 +112,16 @@ class ReliableChatTest {
         assertEquals(1, api.remote.size)
         assertEquals(1, api.sends.map { it.clientMessageId }.distinct().size)
         assertEquals(1, api.sends.map { it.text }.distinct().size)
+    }
+    @Test fun persistedQueueOrderSurvivesTimestampBoundariesAndClockChanges() = runTest {
+        val api = FakeMessages(); val disk = MemoryOutbox()
+        val first = pending().copy(createdAt = "2026-10-20T15:00:00Z")
+        val second = pending().copy(id = "9bf8603a-8a59-4972-a6a5-a7f6583b82b2", createdAt = "2026-10-20T15:00:00.001Z")
+        val third = pending().copy(id = "b53f22d1-fcf1-4ed8-bb4f-5d3a2cd62e71", createdAt = "2026-10-20T14:00:00Z")
+        disk.entries.value = OutboxCodec.decode(OutboxCodec.encode(listOf(first, second, third)))
+        val sender = ReliableMessageSender(api, disk, { OWNER })
+        repeat(3) { assertTrue(sender.sendNext(OWNER, CUSTOMER) is SendAttempt.Sent) }
+        assertEquals(listOf(first.id, second.id, third.id), api.sends.map { it.clientMessageId })
     }
     @Test fun permissionFailureStopsAutomaticRetriesButAllowsAnExplicitRetry() = runTest {
         val api = FakeMessages(); val disk = MemoryOutbox(); disk.enqueue(pending())

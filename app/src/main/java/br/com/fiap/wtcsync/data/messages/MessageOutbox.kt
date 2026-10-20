@@ -45,8 +45,9 @@ class PersistentMessageOutbox(context: Context) : MessageOutbox {
     private val key = stringPreferencesKey("pending_messages")
     private fun PendingMessage.belongs(owner: String, customer: String) =
         ownerEmail.equals(owner, ignoreCase = true) && customerId == customer
+    // The persisted append order is authoritative, including across clock changes.
     override fun observe(owner: String, customer: String) = data.data.map { prefs ->
-        OutboxCodec.decode(prefs[key]).filter { it.belongs(owner, customer) }.sortedBy { it.createdAt }
+        OutboxCodec.decode(prefs[key]).filter { it.belongs(owner, customer) }
     }
     override suspend fun list(owner: String, customer: String) = observe(owner, customer).first()
     override suspend fun enqueue(message: PendingMessage) {

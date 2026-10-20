@@ -201,30 +201,4 @@ private fun ChatConversationItem(
     }
 }
 
-@Composable
-private fun PerformanceCard() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = YellowBadge,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-            Text(
-                text = "DESEMPENHO DA SEMANA",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = YellowText,
-                letterSpacing = 0.44.sp
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("24", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = TextPrimary)
-                Spacer(Modifier.width(8.dp))
-                Text("Novas conversas", fontSize = 16.sp, color = TextPrimary)
-            }
-        }
-    }
-}
+

@@ -179,7 +179,7 @@ fun CampaignListScreen(
                         )
                     }
                 }
-                item { PromoCard() }
+
             }
         }
     }
@@ -621,57 +621,4 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
     WtcStatePanel("Não foi possível carregar as campanhas", message, onRetry = onRetry)
 }
 
-@Composable
-private fun PromoCard() {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor),
-        color = ListPromoBg,
-        border = BorderStroke(2.dp, BorderColor)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
-                tint = SaveText.copy(alpha = 0.3f),
-                modifier = Modifier.size(44.dp)
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Potencialize seus resultados",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White,
-                    letterSpacing = (-0.18).sp,
-                    lineHeight = 24.sp
-                )
-                Text(
-                    text = "Crie automações baseadas no comportamento do seu cliente.",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White.copy(alpha = 0.8f),
-                    lineHeight = 18.sp,
-                    modifier = Modifier.width(200.dp)
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(0.dp),
-                color = YellowBadge,
-                border = BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
-            ) {
-                Text(
-                    text = "Explorar Templates",
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            }
-        }
-    }
-}
+

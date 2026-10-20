@@ -135,7 +135,7 @@ fun ClientesScreen(
                     }
                     Spacer(Modifier.height(12.dp))
                     // Status filter pills
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Todos", "Active", "Inactive", "Prospect").forEach { filter ->
                             val isActive = uiState.selectedFilter == filter
                             WtcFilterChip(filter, isActive, onClick = { viewModel.onFilterChanged(filter) })

@@ -87,12 +87,13 @@ fun WtcScreenHeader(
             Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 if (onBack != null) {
-                    WtcButton(onBack, kind = WtcButtonKind.Text) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(backLabel)
+                    Box(Modifier.weight(1f)) {
+                        WtcButton(onBack, kind = WtcButtonKind.Text) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(backLabel)
+                        }
                     }
-                    Spacer(Modifier.weight(1f))
                 } else {
                     HeaderTitle(title, subtitle, onTitleClick, leading, Modifier.weight(1f))
                 }

@@ -23,7 +23,10 @@ data class MessageUiState(
     val sentCount: Int = 0,
     val ticket: br.com.fiap.wtcsync.data.remote.SupportTicket? = null,
     val connected: Boolean = false,
-    val changingAssignment: Boolean = false
+    val changingAssignment: Boolean = false,
+    val isEditing: Boolean = false,
+    val editError: String? = null,
+    val editedCount: Int = 0
 )
 
 class MessageViewModel(
@@ -102,6 +105,35 @@ class MessageViewModel(
                         messageApi.updateStatus(msg.id, mapOf("status" to "ENTREGUE"))
                     } catch (_: Exception) {}
                 }
+        }
+    }
+
+    fun clearEditError() { _uiState.update { it.copy(editError = null) } }
+
+    fun editMessage(id: String, text: String) {
+        if (text.isBlank() || _uiState.value.isEditing) return
+        val message = _uiState.value.messages.find { it.id == id } ?: return
+        if (!message.senderId.equals(sessionManager.currentEmail, ignoreCase = true)) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isEditing = true, editError = null) }
+            try {
+                val updated = messageApi.editMessage(id, mapOf("text" to text))
+                _uiState.update { state -> state.copy(
+                    messages = state.messages.map { if (it.id == id) updated else it },
+                    editedCount = state.editedCount + 1
+                ) }
+                loadConversation(silent = true)
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e
+            } catch (e: Exception) {
+                val message = when ((e as? retrofit2.HttpException)?.code()) {
+                    401 -> "Sua sessão expirou. Entre novamente para salvar."
+                    403 -> "Você só pode editar mensagens enviadas por você."
+                    404 -> "Esta mensagem não está mais disponível."
+                    400 -> "A mensagem não pode ficar vazia."
+                    else -> "Não foi possível salvar a edição. Seu texto foi mantido; tente novamente."
+                }
+                _uiState.update { it.copy(editError = message) }
+            } finally { _uiState.update { it.copy(isEditing = false) } }
         }
     }
 

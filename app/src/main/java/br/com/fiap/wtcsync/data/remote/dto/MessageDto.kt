@@ -6,7 +6,8 @@ data class MessageDto(
     val customerId: String,
     val text: String,
     val status: String,
-    val createdAt: String?
+    val createdAt: String?,
+    val editedAt: String? = null
 )
 
 data class MessageRequest(

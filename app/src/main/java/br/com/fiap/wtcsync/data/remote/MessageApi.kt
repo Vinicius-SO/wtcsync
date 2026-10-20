@@ -25,6 +25,9 @@ interface MessageApi {
     @POST("messages")
     suspend fun sendMessage(@Body request: MessageRequest): MessageDto
 
+    @PATCH("messages/{id}")
+    suspend fun editMessage(@Path("id") id: String, @Body body: Map<String, String>): MessageDto
+
     @PATCH("messages/{id}/status")
     suspend fun updateStatus(
         @Path("id") id: String,

@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Icon
@@ -90,6 +92,25 @@ fun MessageScreen(
     val currentEmail = app.sessionManager.currentEmail ?: ""
     var messageText by rememberSaveable(clienteId) { mutableStateOf("") }
     var lastSentCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    var editingId by rememberSaveable(clienteId) { mutableStateOf<String?>(null) }
+    var editingText by rememberSaveable(clienteId) { mutableStateOf("") }
+    var originalText by rememberSaveable(clienteId) { mutableStateOf("") }
+    var lastEditedCount by rememberSaveable(clienteId) { mutableStateOf(0) }
+    LaunchedEffect(uiState.editedCount) {
+        if (uiState.editedCount > lastEditedCount) editingId = null
+        lastEditedCount = uiState.editedCount
+    }
+    if (editingId != null) {
+        EditMessageDialog(
+            text = editingText,
+            onTextChange = { editingText = it },
+            saving = uiState.isEditing,
+            changed = editingText != originalText,
+            error = uiState.editError,
+            onDismiss = { editingId = null; viewModel.clearEditError() },
+            onSave = { editingId?.let { viewModel.editMessage(it, editingText) } }
+        )
+    }
     LaunchedEffect(uiState.sentCount) {
         if (uiState.sentCount > lastSentCount) messageText = ""
         lastSentCount = uiState.sentCount
@@ -187,8 +208,13 @@ fun MessageScreen(
                 verticalArrangement = Arrangement.Bottom,
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
-                items(uiState.messages.sortedBy { it.createdAt }.reversed()) { message ->
-                    MessageBubble(message = message, currentEmail = currentEmail)
+                items(uiState.messages.sortedBy { it.createdAt }.reversed(), key = { it.id }) { message ->
+                    MessageBubble(message = message, currentEmail = currentEmail, onEdit = {
+                        viewModel.clearEditError()
+                        editingId = message.id
+                        editingText = message.text
+                        originalText = message.text
+                    })
                 }
             }
         }
@@ -207,8 +233,9 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
 }
 
 @Composable
-fun MessageBubble(message: MessageDto, currentEmail: String) {
-    val isMe = message.senderId == currentEmail
+fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null) {
+    val isMe = message.senderId.equals(currentEmail, ignoreCase = true)
+    var menuExpanded by remember(message.id) { mutableStateOf(false) }
     val bubbleColor = if (isMe) YellowBadge else CardSurface
     val textColor = if (isMe) YellowText else TextPrimary
     val border = if (isMe) BorderStroke(1.5.dp, BorderColor) else BorderStroke(1.5.dp, ListBorderLight)
@@ -242,7 +269,8 @@ fun MessageBubble(message: MessageDto, currentEmail: String) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = formatTime(message.createdAt),
+                        text = formatTime(message.createdAt) + if (message.editedAt != null) " · editada" else "",
+                        modifier = Modifier.weight(1f),
                         fontSize = 10.sp,
                         color = textColor.copy(alpha = 0.8f)
                     )
@@ -265,6 +293,17 @@ fun MessageBubble(message: MessageDto, currentEmail: String) {
                                 modifier = Modifier.size(15.dp),
                                 tint = statusColor
                             )
+                            if (onEdit != null) Box {
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = "Opções da mensagem", tint = textColor)
+                                }
+                                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                    DropdownMenuItem(text = { Text("Editar") }, onClick = {
+                                        menuExpanded = false
+                                        onEdit()
+                                    })
+                                }
+                            }
                         }
                     }
                 }

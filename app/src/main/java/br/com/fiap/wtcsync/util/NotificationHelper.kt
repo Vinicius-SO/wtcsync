@@ -1,8 +1,6 @@
 package br.com.fiap.wtcsync.util
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
@@ -10,48 +8,52 @@ import androidx.core.app.NotificationManagerCompat
 import br.com.fiap.wtcsync.MainActivity
 
 object NotificationHelper {
-
     const val CHANNEL_ID = "messages_channel"
-
     fun createChannel(context: Context) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Mensagens",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notificações de novas mensagens"
-        }
-        context.getSystemService(NotificationManager::class.java)
-            .createNotificationChannel(channel)
+        val channel = NotificationChannel(CHANNEL_ID, "Mensagens", NotificationManager.IMPORTANCE_HIGH)
+        channel.description = "Notificações de novas mensagens"
+        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
-
-    fun showMessageNotification(
-        context: Context,
-        senderName: String,
-        text: String,
-        clienteId: String
-    ) {
+    @Synchronized
+    fun showMessageNotification(context: Context, recipient: String, customerId: String, messageId: String) {
+        val session = (context.applicationContext as br.com.fiap.wtcsync.WtcSyncApp).sessionManager
+        if (!session.notificationsAllowed || (session.currentEmail != null && !recipient.equals(session.currentEmail, ignoreCase = true))) return
+        val prefs = context.getSharedPreferences("chat_notifications", Context.MODE_PRIVATE)
+        val receipt = "$recipient:$messageId"
+        if (prefs.getStringSet("seen", emptySet()).orEmpty().contains(receipt)) return
+        val seen = prefs.getStringSet("seen", emptySet()).orEmpty().toMutableSet()
+        seen.add(receipt)
+        prefs.edit().putStringSet("seen", seen.toList().takeLast(300).toSet()).apply()
+        if (ChatVisibility.isActive(recipient, customerId)) return
+        createChannel(context)
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            action = "br.com.fiap.wtcsync.CHAT"
+            data = android.net.Uri.parse("wtcsync://chat/${android.net.Uri.encode(recipient)}/${android.net.Uri.encode(customerId)}")
+            putExtra("chatRecipient", recipient)
+            putExtra("chatCustomerId", customerId)
+            putExtra("chatRequestId", messageId)
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            clienteId.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_email)
-            .setContentTitle(senderName)
-            .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
-
-        try {
-            NotificationManagerCompat.from(context).notify(clienteId.hashCode(), notification)
-        } catch (_: SecurityException) {}
+            .setContentTitle("WTCSync").setContentText("Você recebeu uma nova mensagem.")
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true)
+            .setOnlyAlertOnce(true).setContentIntent(pendingIntent).build()
+        try { NotificationManagerCompat.from(context).notify("chat:$recipient:$customerId", 1, notification)
+        } catch (_: SecurityException) { }
+    }
+    fun clearConversation(context: Context, email: String, customerId: String) {
+        NotificationManagerCompat.from(context).cancel("chat:$email:$customerId", 1)
+    }
+    @Synchronized
+    fun clearAll(context: Context) { NotificationManagerCompat.from(context).cancelAll() }
+    fun target(intent: Intent?): ChatNotificationTarget? {
+        val recipient = intent?.getStringExtra("chatRecipient") ?: return null
+        val customer = intent.getStringExtra("chatCustomerId") ?: return null
+        val request = intent.getStringExtra("chatRequestId") ?: return null
+        return ChatNotificationTarget(recipient, customer, request)
     }
 }

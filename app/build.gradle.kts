@@ -13,8 +13,8 @@ android {
         applicationId = "br.com.fiap.wtcsync"
         minSdk = 27
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.6"
+        versionCode = 14
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -70,6 +70,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.5.1")) // versão mais recente
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")

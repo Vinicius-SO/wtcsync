@@ -75,8 +75,6 @@ class ChatListViewModel(
     private val _uiState = MutableStateFlow(ChatListUiState())
     val uiState: StateFlow<ChatListUiState> = _uiState.asStateFlow()
 
-    private val knownMessageIds = mutableSetOf<String>()
-    private var initialLoadDone = false
 
     init {
         loadClients()
@@ -132,28 +130,17 @@ class ChatListViewModel(
                         val customerEmail = _uiState.value.tickets.firstOrNull { it.customerId == client.id }?.customerEmail
                         val received = messages.filter { it.senderId == customerEmail }
 
-                        newCounts[client.id] = received.count { it.status == "ENVIADO" }
+                        newCounts[client.id] = received.count { it.status in setOf("ENVIADO", "ENTREGUE") }
                         val latest = messages.maxByOrNull { activityTime(it.createdAt) }
                         newLastMessages[client.id] = latest?.text ?: ""
                         latest?.let { activityTime(it.createdAt) }?.takeIf { it != Long.MIN_VALUE }
                             ?.let { newLastMessageTimes[client.id] = it }
 
-                        if (initialLoadDone) {
-                            received
-                                .filter { it.id !in knownMessageIds }
-                                .forEach { msg ->
-                                    NotificationHelper.showMessageNotification(
-                                        context, client.name, msg.text, client.id
-                                    )
-                                }
-                        }
-                        received.forEach { knownMessageIds.add(it.id) }
                     } catch (_: Exception) {}
                 }
             }.forEach { it.await() }
         }
 
-        initialLoadDone = true
         _uiState.update { it.copy(
             unreadCounts = newCounts,
             lastMessages = it.lastMessages + newLastMessages,

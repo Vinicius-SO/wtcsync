@@ -27,6 +27,10 @@ class WtcSyncApp : Application() {
     lateinit var campaignRepository: CampaignRepository
         private set
 
+    lateinit var pushRegistration: br.com.fiap.wtcsync.data.messages.PushRegistration
+        private set
+    private val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
 
@@ -45,6 +49,7 @@ class WtcSyncApp : Application() {
 
         sessionManager = SessionManager(this)
         apiService = ApiService(sessionManager)
+        pushRegistration = br.com.fiap.wtcsync.data.messages.PushRegistration(this, sessionManager, apiService.pushApi, appScope)
         messageOutbox = br.com.fiap.wtcsync.data.messages.PersistentMessageOutbox(this)
         campaignRepository = CampaignRepository(apiService.campaignApi)
         segmentRepository = SegmentRepository(apiService.segmentApi)

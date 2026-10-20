@@ -40,6 +40,7 @@ private class MemoryOutbox : MessageOutbox {
 private class FakeMessages : MessageApi {
     val remote = linkedMapOf<String, MessageDto>()
     val sends = mutableListOf<MessageRequest>()
+    val receipts = mutableListOf<Pair<String, String>>()
     var sendFailure: Exception? = null
     var inboxFailure: Exception? = null
     var loseAcknowledgement = false
@@ -65,7 +66,13 @@ private class FakeMessages : MessageApi {
         if (loseAcknowledgement) { loseAcknowledgement = false; throw IOException("response lost after commit") }
         return if (wrongCorrelation) result.copy(clientMessageId = "wrong") else result
     }
-    override suspend fun updateStatus(id: String, status: Map<String, String>) = remote.values.first { it.id == id }
+    override suspend fun updateStatus(id: String, status: Map<String, String>): MessageDto {
+        receipts += id to status.getValue("status")
+        val entry = remote.entries.first { it.value.id == id }
+        val updated = entry.value.copy(status = status.getValue("status"))
+        remote[entry.key] = updated
+        return updated
+    }
     override suspend fun editMessage(id: String, body: Map<String, String>) = remote.values.first { it.id == id }
     override suspend fun deleteMessage(id: String) { remote.entries.removeAll { it.value.id == id } }
 }
@@ -96,6 +103,32 @@ class ReliableChatTest {
         }
     }
     private fun http(code: Int) = HttpException(Response.error<Any>(code, "error".toResponseBody()))
+
+    @Test fun loadingAndBackgroundVisibilityNeverMarkMessagesRead() = runTest {
+        val api = FakeMessages()
+        api.remote["received"] = MessageDto("received", "operator@example.invalid", CUSTOMER, "Olá", "ENVIADO", null)
+        val model = vm(api, MemoryOutbox()); runCurrent()
+        assertEquals(listOf("received" to "ENTREGUE"), api.receipts)
+        model.markVisibleRead(setOf("received"), resumed = false); runCurrent()
+        assertFalse(api.receipts.any { it.second == "LIDO" })
+        model.markVisibleRead(emptySet(), resumed = true); runCurrent()
+        assertFalse(api.receipts.any { it.second == "LIDO" })
+        model.markVisibleRead(setOf("received"), resumed = true); runCurrent()
+        assertEquals("received" to "LIDO", api.receipts.last())
+        model.markVisibleRead(setOf("received"), resumed = true); runCurrent()
+        assertEquals(1, api.receipts.count { it.second == "LIDO" })
+    }
+
+    @Test fun onlyVisibleReceivedMessagesAreRead() = runTest {
+        val api = FakeMessages()
+        api.remote["old"] = MessageDto("old", "operator@example.invalid", CUSTOMER, "Histórico", "ENTREGUE", null)
+        api.remote["new"] = MessageDto("new", "operator@example.invalid", CUSTOMER, "Visível", "ENTREGUE", null)
+        api.remote["own"] = MessageDto("own", OWNER, CUSTOMER, "Minha", "ENVIADO", null)
+        val model = vm(api, MemoryOutbox()); runCurrent()
+        model.markVisibleRead(setOf("new", "own"), resumed = true); runCurrent()
+        assertEquals(listOf("new" to "LIDO"), api.receipts)
+        assertEquals("ENTREGUE", model.uiState.value.messages.first { it.id == "old" }.status)
+    }
 
     @Test fun lostAcknowledgementAndProcessRestartReuseTheSameIdWithoutDuplicating() = runTest {
         val api = FakeMessages(); val disk = MemoryOutbox(); disk.enqueue(pending())

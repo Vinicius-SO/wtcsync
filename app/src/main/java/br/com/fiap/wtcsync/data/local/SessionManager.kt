@@ -28,9 +28,21 @@ class SessionManager(private val context: Context) {
     var currentEmail: String? = null
         private set
 
+    @Volatile
+    var notificationsAllowed: Boolean = true
+        private set
+
     val token: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
     val role: Flow<String?> = context.dataStore.data.map { it[ROLE_KEY] }
     val email: Flow<String?> = context.dataStore.data.map { it[EMAIL_KEY] }
+
+    suspend fun tokenSnapshot(): String? = context.dataStore.data.first()[TOKEN_KEY]?.takeUnless { isExpired(it) }
+    suspend fun accountSnapshot(): Pair<String, String>? {
+        val prefs = context.dataStore.data.first()
+        val token = prefs[TOKEN_KEY]?.takeUnless { isExpired(it) } ?: return null
+        val email = prefs[EMAIL_KEY] ?: return null
+        return email to token
+    }
 
     suspend fun saveSession(token: String, role: String, email: String) {
         context.dataStore.edit {
@@ -41,6 +53,7 @@ class SessionManager(private val context: Context) {
         currentToken = token
         currentRole = role
         currentEmail = email
+        notificationsAllowed = true
     }
 
     suspend fun restoreSession() {
@@ -52,9 +65,11 @@ class SessionManager(private val context: Context) {
     }
 
     suspend fun clear() {
+        notificationsAllowed = false
         currentToken = null
         currentRole = null
         currentEmail = null
+        br.com.fiap.wtcsync.util.NotificationHelper.clearAll(context)
         context.dataStore.edit {
             it.clear()
         }

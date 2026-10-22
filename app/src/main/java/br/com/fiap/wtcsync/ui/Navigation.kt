@@ -280,7 +280,7 @@ private fun HomeScreen(
         Scaffold(
             bottomBar = { BottomNavBar(tabs, clientTab, { clientTab = it }) }
         ) { padding ->
-            Box(Modifier.fillMaxSize().padding(padding)) {
+            Box(Modifier.fillMaxSize().padding(padding).tabMotion(clientTab)) {
                 tabState.SaveableStateProvider(clientTab) {
                     when (clientTab) {
                         BottomNavTab.OUTRAS -> br.com.fiap.wtcsync.ui.client.ClientMoreScreen(onLogout)
@@ -316,7 +316,7 @@ private fun HomeScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Box(modifier = Modifier.padding(padding).tabMotion(selectedTab)) {
             when (selectedTab) {
                 BottomNavTab.CLIENTES -> ClientesScreen(
                     onCreateClick = { navController.navigate("clientes/novo") },

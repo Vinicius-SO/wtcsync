@@ -244,12 +244,12 @@ fun MessageScreen(
                         contentPadding = PaddingValues(vertical = 12.dp)
                     ) {
                         items(pending.reversed(), key = { "pending-${it.id}" }) { message ->
-                            PendingMessageBubble(message, sending = uiState.sendingId == message.id,
+                            PendingMessageBubble(message, modifier = wtcItemMotion(), sending = uiState.sendingId == message.id,
                                 canRetry = uiState.sendingId == null && pending.firstOrNull()?.id == message.id,
                                 onRetry = { viewModel.retryPending(message.id) })
                         }
                         items(uiState.messages.sortedBy { it.createdAt }.reversed(), key = { it.id }) { message ->
-                            MessageBubble(message = message, currentEmail = currentEmail, onEdit = {
+                            MessageBubble(message = message, modifier = wtcItemMotion(), currentEmail = currentEmail, onEdit = {
                                 if (!uiState.isEditing) {
                                     viewModel.clearEditError()
                                     editingId = message.id
@@ -282,22 +282,17 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
 }
 
 @Composable
-fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
+fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     val isMe = message.senderId.equals(currentEmail, ignoreCase = true)
     var menuExpanded by remember(message.id) { mutableStateOf(false) }
     val bubbleColor = if (isMe) MessageSentBg else CardSurface
     val textColor = if (isMe) MessageSentText else TextPrimary
-    val border = BorderStroke(1.dp, ListBorderLight)
+    val border = WtcBorders.subtle()
     val alignment = if (isMe) Alignment.CenterEnd else Alignment.CenterStart
-    val shape = RoundedCornerShape(
-        topStart = 16.dp,
-        topEnd = 16.dp,
-        bottomStart = if (isMe) 16.dp else 4.dp,
-        bottomEnd = if (isMe) 4.dp else 16.dp
-    )
+    val shape = WtcCorners.message(isMe)
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 3.dp),
         contentAlignment = alignment
@@ -389,9 +384,9 @@ private fun ChatInputBar(
         if (editingId != null) { focusRequester.requestFocus(); keyboard?.show() }
     }
     Column(
-        modifier = Modifier.fillMaxWidth().background(HeaderBg)
+        modifier = Modifier.fillMaxWidth().wtcAnimateSize().background(HeaderBg)
             .themedDrawBehind { palette ->
-                drawLine(palette.BorderColor, Offset(0f, 0f), Offset(size.width, 0f), 2f)
+                drawLine(palette.BorderColor, Offset(0f, 0f), Offset(size.width, 0f), WtcBorders.Width.toPx())
             }
     ) {
         if (editingId != null) Row(
@@ -409,8 +404,8 @@ private fun ChatInputBar(
         ) {
             Surface(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(24.dp), color = InputSurface,
-                border = BorderStroke(1.5.dp, ListBorderLight)
+                shape = WtcShapes.medium, color = InputSurface,
+                border = WtcBorders.control()
             ) {
                 TextField(
                     value = fieldValue,

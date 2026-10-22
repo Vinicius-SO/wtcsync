@@ -73,7 +73,7 @@ fun BottomNavBar(
                     color = palette.NavBarBorder,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
-                    strokeWidth = 2f
+                    strokeWidth = WtcBorders.Width.toPx()
                 )
             }
     ) {
@@ -113,7 +113,7 @@ private fun BottomNavItem(
     val interaction = remember { MutableInteractionSource() }
     val containerColor by animateColorAsState(if (isSelected) NavBarActiveFill else Color.Transparent, tween(WtcMotion.SHORT), label = "navContainer")
     val contentColor by animateColorAsState(if (isSelected) NavBarActive else NavBarInactive, tween(WtcMotion.SHORT), label = "navContent")
-    val shape = RoundedCornerShape(12.dp)
+    val shape = WtcShapes.medium
 
     Surface(
         onClick = onClick,

@@ -50,12 +50,12 @@ fun WtcButton(
     )
     Button(
         onClick = onClick,
-        modifier = modifier.defaultMinSize(minHeight = 48.dp).pressScale(interaction),
+        modifier = modifier.defaultMinSize(minHeight = 48.dp).pressScale(interaction).wtcAnimateSize(),
         interactionSource = interaction,
         enabled = enabled && !loading,
         shape = MaterialTheme.shapes.medium,
         colors = buttonColors,
-        border = if (kind == WtcButtonKind.Secondary) BorderStroke(1.dp, BorderColor) else null,
+        border = if (kind == WtcButtonKind.Secondary) WtcBorders.control() else null,
         elevation = null,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
     ) {
@@ -161,7 +161,7 @@ fun WtcStatePanel(title: String, message: String? = null, onRetry: (() -> Unit)?
 
 @Composable
 fun WtcFeedback(message: String, isError: Boolean = true, onDismiss: (() -> Unit)? = null) {
-    Surface(color = if (isError) ErrorBg else SuccessBg, shape = RoundedCornerShape(12.dp),
+    Surface(color = if (isError) ErrorBg else SuccessBg, shape = WtcShapes.medium,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(message, color = if (isError) ErrorText else SuccessText, fontSize = 14.sp, modifier = Modifier.weight(1f))
@@ -177,7 +177,7 @@ fun WtcFilterChip(label: String, selected: Boolean, onClick: () -> Unit, modifie
     Surface(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).pressScale(interaction),
         interactionSource = interaction, shape = MaterialTheme.shapes.medium,
         color = container,
-        border = BorderStroke(1.dp, if (selected) BorderColor else ListBorderLight)) {
+        border = if (selected) WtcBorders.selected() else WtcBorders.control()) {
         Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
             Text(label, color = if (selected) YellowText else TextSecondary, fontSize = 14.sp,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,

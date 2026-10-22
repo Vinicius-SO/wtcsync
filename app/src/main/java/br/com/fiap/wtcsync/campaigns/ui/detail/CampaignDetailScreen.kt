@@ -327,11 +327,10 @@ private fun DetailHeader(onBackClick: () -> Unit) {
 private fun CampaignBanner(mediaUrl: String) {
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
-        shape = RoundedCornerShape(12.dp),
+            .fillMaxWidth(),
+        shape = WtcShapes.medium,
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Box(
             modifier = Modifier
@@ -369,7 +368,7 @@ private fun CampaignInfoSection(campaign: Campaign) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Surface(
-            shape = RoundedCornerShape(4.dp),
+            shape = WtcShapes.extraSmall,
             color = statusBg
         ) {
             Text(
@@ -401,9 +400,9 @@ private fun CampaignInfoSection(campaign: Campaign) {
 private fun BodySection(body: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = WtcShapes.medium,
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -432,9 +431,9 @@ private fun StatsSection(campaign: Campaign) {
     val stats = campaign.stats
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = WtcShapes.medium,
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -495,9 +494,9 @@ private fun FooterSection(campaign: Campaign) {
         horizontalArrangement = Arrangement.Center
     ) {
         Surface(
-            shape = RoundedCornerShape(50),
+            shape = WtcCorners.Pill,
             color = FooterBg,
-            border = BorderStroke(1.dp, FooterBorder)
+            border = WtcBorders.subtle()
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),

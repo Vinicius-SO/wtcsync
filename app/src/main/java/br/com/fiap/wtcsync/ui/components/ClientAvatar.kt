@@ -33,7 +33,7 @@ fun ClientAvatar(
             modifier = Modifier.size(size),
             shape = shape,
             color = YellowBadge,
-            border = BorderStroke(1.5.dp, ListBorderLight)
+            border = WtcBorders.subtle()
         ) {
             Box(
                 contentAlignment = Alignment.Center,

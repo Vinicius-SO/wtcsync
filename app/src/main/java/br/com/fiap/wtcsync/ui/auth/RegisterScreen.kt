@@ -136,7 +136,7 @@ fun RegisterScreen(
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = WtcShapes.medium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -166,7 +166,7 @@ fun RegisterScreen(
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = WtcShapes.medium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -202,7 +202,7 @@ fun RegisterScreen(
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = WtcShapes.medium
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -238,7 +238,7 @@ fun RegisterScreen(
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
-                shape = RoundedCornerShape(8.dp)
+                shape = WtcShapes.medium
             )
 
             Spacer(modifier = Modifier.height(32.dp))

@@ -103,6 +103,7 @@ fun ChatListScreen(
                 placeholder = { Text("Buscar contato...", color = TextSecondary) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 singleLine = true,
+                shape = WtcShapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = SaveText,
                     unfocusedBorderColor = SaveText,
@@ -137,10 +138,7 @@ fun ChatListScreen(
                 LazyColumn(modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(displayedClients, key = { it.id }) { cliente ->
-                        Box(Modifier.animateItem(
-                            fadeInSpec = null, fadeOutSpec = null,
-                            placementSpec = if (LocalReduceMotion.current) androidx.compose.animation.core.snap() else androidx.compose.animation.core.tween(WtcMotion.MEDIUM)
-                        )) {
+                        Box(wtcItemMotion()) {
                         ChatConversationItem(
                             cliente = cliente,
                             lastMessage = uiState.lastMessages[cliente.id] ?: "",

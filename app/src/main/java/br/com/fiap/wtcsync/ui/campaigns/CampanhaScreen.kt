@@ -169,11 +169,10 @@ private fun HeaderButton(
 private fun EventBanner() {
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
-        shape = RoundedCornerShape(12.dp),
+            .fillMaxWidth(),
+        shape = WtcShapes.medium,
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Box(
             modifier = Modifier
@@ -224,9 +223,9 @@ private fun ContentSection(
 @Composable
 private fun BadgeExclusivo() {
     Surface(
-        shape = RoundedCornerShape(4.dp),
+        shape = WtcShapes.extraSmall,
         color = YellowBadge,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Text(
             text = "EXCLUSIVO",
@@ -267,9 +266,9 @@ private fun DescriptionCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = WtcShapes.medium,
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -330,14 +329,10 @@ private fun ActionButton(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (shadow) Modifier.shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f))
-                else Modifier
-            ),
-        shape = RoundedCornerShape(12.dp),
+            .fillMaxWidth(),
+        shape = WtcShapes.medium,
         color = bgColor,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Row(
             modifier = Modifier
@@ -370,9 +365,9 @@ private fun FooterTimestamp(
     text: String
 ) {
     Surface(
-        shape = RoundedCornerShape(50),
+        shape = WtcCorners.Pill,
         color = FooterBg,
-        border = BorderStroke(1.dp, FooterBorder)
+        border = WtcBorders.subtle()
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),

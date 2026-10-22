@@ -14,3 +14,12 @@ val WtcShapes = Shapes(
     large      = RoundedCornerShape(20.dp),
     extraLarge = RoundedCornerShape(28.dp),
 )
+
+object WtcCorners {
+    val Pill = androidx.compose.foundation.shape.CircleShape
+    fun message(outgoing: Boolean) = RoundedCornerShape(
+        topStart = 12.dp, topEnd = 12.dp,
+        bottomStart = if (outgoing) 12.dp else 4.dp,
+        bottomEnd = if (outgoing) 4.dp else 12.dp
+    )
+}

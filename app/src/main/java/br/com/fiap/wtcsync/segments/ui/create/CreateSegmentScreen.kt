@@ -98,9 +98,9 @@ fun CreateSegmentScreen(
             // Filtros
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = WtcShapes.medium,
                 color = CardSurface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
+                border = WtcBorders.subtle()
             ) {
                 Column(modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -114,9 +114,9 @@ fun CreateSegmentScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.tags.forEach { tag ->
                             Surface(
-                                shape = RoundedCornerShape(20.dp),
+                                shape = WtcShapes.large,
                                 color = YellowBadge,
-                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
+                                border = WtcBorders.subtle()
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -175,9 +175,9 @@ fun CreateSegmentScreen(
             // Pré-visualização
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = WtcShapes.medium,
                 color = CardSurface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor)
+                border = WtcBorders.subtle()
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -198,7 +198,7 @@ fun CreateSegmentScreen(
             // Info
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = WtcShapes.medium,
                 color = InfoBg
             ) {
                 Text(

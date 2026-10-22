@@ -67,9 +67,9 @@ fun SegmentListScreen(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(0.dp),
+                        shape = WtcShapes.medium,
                         color = CardSurface,
-                        border = BorderStroke(2.dp, BorderColor)
+                        border = WtcBorders.control()
                     ) {
                         Box(
                             modifier = Modifier
@@ -138,6 +138,7 @@ fun SegmentListScreen(
             } else {
                 items(filtered, key = { it.id }) { segment ->
                     SegmentCard(
+                            modifier = wtcItemMotion(),
                         segment = segment,
                         onClick = { onSegmentClick(segment.id) }
                     )
@@ -150,9 +151,10 @@ fun SegmentListScreen(
 @Composable
 private fun SegmentCard(
     segment: SegmentDto,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    WtcCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -182,9 +184,9 @@ private fun SegmentCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     segment.tags.take(2).forEach { tag ->
                         Surface(
-                            shape = RoundedCornerShape(20.dp),
+                            shape = WtcShapes.large,
                             color = YellowBadge,
-                            border = BorderStroke(1.dp, BorderColor)
+                            border = WtcBorders.subtle()
                         ) {
                             Text(
                                 text = tag,
@@ -205,9 +207,9 @@ private fun SegmentCard(
             ) {
                 Surface(
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(0.dp),
+                    shape = WtcShapes.medium,
                     color = CardSurface,
-                    border = BorderStroke(2.dp, BorderColor)
+                    border = WtcBorders.subtle()
                 ) {
                     Box(
                         modifier = Modifier
@@ -224,9 +226,9 @@ private fun SegmentCard(
                     }
                 }
                 Surface(
-                    shape = RoundedCornerShape(0.dp),
+                    shape = WtcShapes.medium,
                     color = YellowBadge,
-                    border = BorderStroke(2.dp, BorderColor)
+                    border = WtcBorders.subtle()
                 ) {
                     Box(
                         modifier = Modifier.padding(10.dp),
@@ -250,7 +252,8 @@ private fun SegmentSkeletonCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = CardSurface,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle(),
+        shape = WtcShapes.medium
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -259,18 +262,18 @@ private fun SegmentSkeletonCard() {
             Box(
                 modifier = Modifier
                     .size(160.dp, 18.dp)
-                    .background(SkeletonBase, RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, WtcShapes.extraSmall)
             )
             Box(
                 modifier = Modifier
                     .size(100.dp, 14.dp)
-                    .background(SkeletonBase, RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, WtcShapes.extraSmall)
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(36.dp)
-                    .background(SkeletonBase, RoundedCornerShape(2.dp))
+                    .background(SkeletonBase, WtcShapes.extraSmall)
             )
         }
     }

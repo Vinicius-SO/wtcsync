@@ -94,8 +94,13 @@ fun LoginScreen(
                 placeholder = { Text("JoeDoe@WTC.com", color = TextSecondary) }, // Placeholder
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth()
-                // Label removido de dentro
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = BorderColor
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -113,8 +118,13 @@ fun LoginScreen(
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(), // Para ocultar a senha
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
-                // Label removido de dentro
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = BorderColor
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))

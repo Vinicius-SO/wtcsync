@@ -17,17 +17,17 @@ import br.com.fiap.wtcsync.ui.components.*
 @Composable
 fun PendingMessageBubble(message: PendingMessage, sending: Boolean, canRetry: Boolean, onRetry: () -> Unit) {
     Box(Modifier.fillMaxWidth().padding(vertical = 3.dp), contentAlignment = Alignment.CenterEnd) {
-        Surface(color = YellowBadge, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, BorderColor),
+        Surface(color = MessageSentBg, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, ListBorderLight),
             modifier = Modifier.padding(horizontal = 4.dp).fillMaxWidth(0.78f)) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(message.text, color = YellowText, fontSize = 15.sp)
+                Text(message.text, color = MessageSentText, fontSize = 15.sp)
                 Text(when {
                     sending -> "Enviando…"
                     message.error != null && !message.retryable -> "Não enviada"
                     else -> "Pendente"
-                }, color = YellowText, fontSize = 12.sp)
+                }, color = MessageSentText, fontSize = 12.sp)
                 if (message.error != null && !sending) {
-                    Text(message.error, color = YellowText, fontSize = 12.sp)
+                    Text(message.error, color = MessageSentText, fontSize = 12.sp)
                     if (canRetry) WtcButton(onRetry, kind = WtcButtonKind.Secondary) { Text("Tentar novamente") }
                 }
             }

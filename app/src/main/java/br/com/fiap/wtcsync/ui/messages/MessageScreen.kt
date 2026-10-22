@@ -285,9 +285,9 @@ private fun ChatHeader(contactName: String, onBackClick: () -> Unit, showBackBut
 fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
     val isMe = message.senderId.equals(currentEmail, ignoreCase = true)
     var menuExpanded by remember(message.id) { mutableStateOf(false) }
-    val bubbleColor = if (isMe) YellowBadge else CardSurface
-    val textColor = if (isMe) YellowText else TextPrimary
-    val border = if (isMe) BorderStroke(1.5.dp, BorderColor) else BorderStroke(1.5.dp, ListBorderLight)
+    val bubbleColor = if (isMe) MessageSentBg else CardSurface
+    val textColor = if (isMe) MessageSentText else TextPrimary
+    val border = BorderStroke(1.dp, ListBorderLight)
     val alignment = if (isMe) Alignment.CenterEnd else Alignment.CenterStart
     val shape = RoundedCornerShape(
         topStart = 16.dp,
@@ -325,7 +325,7 @@ fun MessageBubble(message: MessageDto, currentEmail: String, onEdit: (() -> Unit
                     )
                     if (isMe) {
                         val delivered = message.status in setOf("ENTREGUE", "LIDO")
-                        val statusColor = if (message.status == "LIDO") InfoText else BorderColor
+                        val statusColor = if (message.status == "LIDO") InfoText else textColor
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -409,7 +409,7 @@ private fun ChatInputBar(
         ) {
             Surface(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(24.dp), color = CardSurface,
+                shape = RoundedCornerShape(24.dp), color = InputSurface,
                 border = BorderStroke(1.5.dp, ListBorderLight)
             ) {
                 TextField(

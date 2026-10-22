@@ -13,8 +13,8 @@ android {
         applicationId = "br.com.fiap.wtcsync"
         minSdk = 27
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.11"
+        versionCode = 19
+        versionName = "1.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

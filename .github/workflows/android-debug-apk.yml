@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/dark-brand-identity
       - feature/hybrid-design
       - fix/login-speed
       - feature/inline-edit-client-menu

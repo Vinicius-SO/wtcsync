@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.com.fiap.wtcsync.theme.ListBorderLight
+import br.com.fiap.wtcsync.theme.*
 import br.com.fiap.wtcsync.theme.TextPrimary
 
 @Composable
@@ -32,7 +32,7 @@ fun ClientAvatar(
         Surface(
             modifier = Modifier.size(size),
             shape = shape,
-            color = ListBorderLight,
+            color = YellowBadge,
             border = BorderStroke(1.5.dp, ListBorderLight)
         ) {
             Box(
@@ -43,7 +43,7 @@ fun ClientAvatar(
                     text = name.firstOrNull()?.uppercase() ?: "?",
                     fontSize = (size.value * 0.35f).sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = YellowText
                 )
             }
         }
@@ -52,8 +52,8 @@ fun ClientAvatar(
                 modifier = Modifier
                     .size(10.dp)
                     .align(Alignment.BottomEnd)
-                    .background(Color(0xFF4CAF50), CircleShape)
-                    .border(1.5.dp, Color.White, CircleShape)
+                    .background(SuccessText, CircleShape)
+                    .border(1.5.dp, CardSurface, CircleShape)
             )
         }
     }

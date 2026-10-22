@@ -134,8 +134,13 @@ fun ChatListScreen(
                 Text("Nenhuma conversa encontrada", color = TextSecondary)
             }
             else -> {
-                LazyColumn(modifier = Modifier.weight(1f)) {
+                LazyColumn(modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(displayedClients, key = { it.id }) { cliente ->
+                        Box(Modifier.animateItem(
+                            fadeInSpec = null, fadeOutSpec = null,
+                            placementSpec = if (LocalReduceMotion.current) androidx.compose.animation.core.snap() else androidx.compose.animation.core.tween(WtcMotion.MEDIUM)
+                        )) {
                         ChatConversationItem(
                             cliente = cliente,
                             lastMessage = uiState.lastMessages[cliente.id] ?: "",
@@ -143,7 +148,8 @@ fun ChatListScreen(
                             unreadCount = uiState.unreadCounts[cliente.id] ?: 0,
                             onClick = { onChatClick(cliente.id, cliente.name) }
                         )
-                        Divider(color = ListBorderLight, thickness = 1.dp)
+                        }
+
                     }
 
                 }
@@ -166,11 +172,9 @@ private fun ChatConversationItem(
     onClick: () -> Unit
 ) {
     val hasUnread = unreadCount > 0
+    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         ClientAvatar(name = cliente.name, size = 44.dp, showOnlineIndicator = false)
@@ -197,12 +201,12 @@ private fun ChatConversationItem(
         Spacer(Modifier.width(8.dp))
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (hasUnread) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(YellowBadge, androidx.compose.foundation.shape.CircleShape)
-                )
+                Surface(color = YellowBadge, shape = androidx.compose.foundation.shape.CircleShape) {
+                    Text(if (unreadCount > 99) "99+" else unreadCount.toString(), color = YellowText,
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                }
             }
         }
     }
+}
 }

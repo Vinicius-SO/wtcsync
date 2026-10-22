@@ -2,6 +2,7 @@ package br.com.fiap.wtcsync.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,6 +10,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +36,7 @@ fun WtcButton(
     kind: WtcButtonKind = WtcButtonKind.Primary,
     content: @Composable RowScope.() -> Unit
 ) {
+    val interaction = remember { MutableInteractionSource() }
     val foreground = when (kind) {
         WtcButtonKind.Primary -> YellowText
         WtcButtonKind.DangerText -> ErrorText
@@ -43,9 +50,10 @@ fun WtcButton(
     )
     Button(
         onClick = onClick,
-        modifier = modifier.defaultMinSize(minHeight = 48.dp),
+        modifier = modifier.defaultMinSize(minHeight = 48.dp).pressScale(interaction),
+        interactionSource = interaction,
         enabled = enabled && !loading,
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = buttonColors,
         border = if (kind == WtcButtonKind.Secondary) BorderStroke(1.dp, BorderColor) else null,
         elevation = null,
@@ -104,6 +112,7 @@ fun WtcScreenHeader(
                 Spacer(Modifier.height(4.dp))
             }
             HorizontalDivider(color = ListBorderLight)
+            Box(Modifier.padding(start = 16.dp).width(40.dp).height(3.dp).background(YellowBadge, MaterialTheme.shapes.small))
         }
     }
 }
@@ -113,7 +122,7 @@ private fun HeaderTitle(title: String, subtitle: String?, onClick: (() -> Unit)?
     Row(modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier), verticalAlignment = Alignment.CenterVertically) {
         leading()
         Column(Modifier.padding(horizontal = 4.dp).weight(1f)) {
-            Text(title, color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold,
+            Text(title, color = TextPrimary, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (!subtitle.isNullOrBlank()) Text(subtitle, color = TextSecondary, fontSize = 12.sp,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -163,8 +172,11 @@ fun WtcFeedback(message: String, isError: Boolean = true, onDismiss: (() -> Unit
 
 @Composable
 fun WtcFilterChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(onClick = onClick, modifier = modifier.heightIn(min = 48.dp), shape = RoundedCornerShape(24.dp),
-        color = if (selected) YellowBadge else CardSurface,
+    val interaction = remember { MutableInteractionSource() }
+    val container by animateColorAsState(if (selected) YellowBadge else CardSurface, tween(WtcMotion.SHORT), label = "filterColor")
+    Surface(onClick = onClick, modifier = modifier.heightIn(min = 48.dp).pressScale(interaction),
+        interactionSource = interaction, shape = MaterialTheme.shapes.medium,
+        color = container,
         border = BorderStroke(1.dp, if (selected) BorderColor else ListBorderLight)) {
         Box(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
             Text(label, color = if (selected) YellowText else TextSecondary, fontSize = 14.sp,

@@ -380,14 +380,7 @@ private fun CampaignCard(
     }
     var showMenu by remember { mutableStateOf(false) }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor)
-            .clickable(onClick = onClick),
-        color = CardSurface,
-        border = BorderStroke(2.dp, ListBorderLight)
-    ) {
+    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

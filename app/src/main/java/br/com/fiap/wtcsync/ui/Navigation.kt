@@ -3,6 +3,13 @@ package br.com.fiap.wtcsync.ui
 import br.com.fiap.wtcsync.ui.components.*
 import android.app.Application
 import android.net.Uri
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
+import br.com.fiap.wtcsync.theme.LocalReduceMotion
+import br.com.fiap.wtcsync.theme.WtcMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -94,7 +101,23 @@ fun Navigation(navController: NavHostController,
         }
     }
 
-    NavHost(navController = navController, startDestination = "entry") {
+    val reduceMotion = LocalReduceMotion.current
+    NavHost(
+        navController = navController, startDestination = "entry",
+        enterTransition = {
+            if (reduceMotion) fadeIn(tween(WtcMotion.SHORT))
+            else fadeIn(tween(WtcMotion.MEDIUM)) + slideInHorizontally(tween(WtcMotion.LONG)) { it / 10 }
+        },
+        exitTransition = { fadeOut(tween(WtcMotion.SHORT)) },
+        popEnterTransition = {
+            if (reduceMotion) fadeIn(tween(WtcMotion.SHORT))
+            else fadeIn(tween(WtcMotion.MEDIUM)) + slideInHorizontally(tween(WtcMotion.LONG)) { -it / 20 }
+        },
+        popExitTransition = {
+            if (reduceMotion) fadeOut(tween(WtcMotion.SHORT))
+            else fadeOut(tween(WtcMotion.SHORT)) + slideOutHorizontally(tween(WtcMotion.MEDIUM)) { it / 10 }
+        }
+    ) {
         composable("entry") {
             EntryScreen(
                 viewModel = authViewModel,

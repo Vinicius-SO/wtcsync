@@ -48,8 +48,8 @@ fun WTCSYNCTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composabl
             }
         }
     }
-    CompositionLocalProvider(LocalWtcPalette provides palette) {
-        MaterialTheme(colorScheme = scheme, typography = Typography) {
+    CompositionLocalProvider(LocalWtcPalette provides palette, LocalReduceMotion provides rememberReduceMotion()) {
+        MaterialTheme(colorScheme = scheme, typography = Typography, shapes = WtcShapes) {
             Surface(color = palette.BackgroundCream, contentColor = palette.TextPrimary, content = content)
         }
     }

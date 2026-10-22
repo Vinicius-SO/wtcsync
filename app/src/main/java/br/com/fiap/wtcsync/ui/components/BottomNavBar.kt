@@ -23,6 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import br.com.fiap.wtcsync.theme.themedDrawBehind
@@ -101,18 +110,20 @@ private fun BottomNavItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val containerColor = if (isSelected) NavBarActiveFill else Color.Transparent
-    val contentColor = if (isSelected) NavBarActive else NavBarInactive
+    val interaction = remember { MutableInteractionSource() }
+    val containerColor by animateColorAsState(if (isSelected) NavBarActiveFill else Color.Transparent, tween(WtcMotion.SHORT), label = "navContainer")
+    val contentColor by animateColorAsState(if (isSelected) NavBarActive else NavBarInactive, tween(WtcMotion.SHORT), label = "navContent")
     val shape = RoundedCornerShape(12.dp)
 
     Surface(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.pressScale(interaction).semantics { selected = isSelected; role = Role.Tab },
+        interactionSource = interaction,
         shape = shape,
         color = containerColor,
         tonalElevation = if (isSelected) 2.dp else 0.dp,
         shadowElevation = if (isSelected) 2.dp else 0.dp,
-        border = if (isSelected) BorderStroke(2.dp, NavBarBorder) else null
+        border = if (isSelected) BorderStroke(1.dp, NavBarBorder) else null
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
@@ -127,7 +138,7 @@ private fun BottomNavItem(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = tab.label.uppercase(),
+                text = tab.label,
                 maxLines = 1,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 fontSize = 10.sp,

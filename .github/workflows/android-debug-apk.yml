@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/hybrid-design
       - fix/login-speed
       - feature/inline-edit-client-menu
       - fix/durable-push

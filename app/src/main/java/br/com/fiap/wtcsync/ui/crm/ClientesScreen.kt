@@ -167,13 +167,7 @@ fun ClientesScreen(
 
 @Composable
 private fun ClientCard(cliente: ClientDto, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        color = CardSurface,
-        border = BorderStroke(2.dp, ListBorderLight),
-        shadowElevation = 2.dp
-    ) {
+    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             ClientAvatar(name = cliente.name, size = 52.dp, shape = RoundedCornerShape(8.dp))
             Spacer(Modifier.width(12.dp))

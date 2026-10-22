@@ -13,8 +13,8 @@ import androidx.core.view.WindowCompat
 fun WTCSYNCTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val palette = if (darkTheme) DarkPalette else LightPalette
     val scheme = (if (darkTheme) darkColorScheme() else lightColorScheme()).copy(
-        primary = if (darkTheme) Color(0xFFFFDC72) else Color(0xFF745B00),
-        onPrimary = if (darkTheme) Color(0xFF302600) else Color.White,
+        primary = if (darkTheme) palette.BrandAccent else Color(0xFF745B00),
+        onPrimary = if (darkTheme) palette.OnBrandAccent else Color.White,
         primaryContainer = palette.YellowBadge, onPrimaryContainer = palette.YellowText,
         secondary = palette.SaveText, onSecondary = palette.BackgroundCream,
         secondaryContainer = palette.ActionCardBg, onSecondaryContainer = palette.TextPrimary,

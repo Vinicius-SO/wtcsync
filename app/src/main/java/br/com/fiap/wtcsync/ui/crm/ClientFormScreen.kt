@@ -97,10 +97,10 @@ fun ClientFormScreen(
                     label = { Text("Tag") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BorderColor,
-                        unfocusedBorderColor = BorderColor,
-                        focusedContainerColor = CardSurface,
-                        unfocusedContainerColor = CardSurface
+                        focusedBorderColor = SaveText,
+                        unfocusedBorderColor = SaveText,
+                        focusedContainerColor = InputSurface,
+                        unfocusedContainerColor = InputSurface
                     )
                 )
             },
@@ -277,8 +277,8 @@ private fun FormField(label: String, content: @Composable () -> Unit) {
 
 @Composable
 private fun formFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = BorderColor,
-    unfocusedBorderColor = BorderColor,
-    focusedContainerColor = CardSurface,
-    unfocusedContainerColor = CardSurface
+    focusedBorderColor = SaveText,
+    unfocusedBorderColor = SaveText,
+    focusedContainerColor = InputSurface,
+    unfocusedContainerColor = InputSurface
 )

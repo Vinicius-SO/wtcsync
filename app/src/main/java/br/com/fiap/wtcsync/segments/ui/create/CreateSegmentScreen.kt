@@ -157,8 +157,8 @@ fun CreateSegmentScreen(
                             valueRange = 0f..100f,
                             modifier = Modifier.weight(1f),
                             colors = SliderDefaults.colors(
-                                thumbColor = YellowBadge,
-                                activeTrackColor = YellowBadge
+                                thumbColor = BrandAccent,
+                                activeTrackColor = BrandAccent
                             )
                         )
                         Text(

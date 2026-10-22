@@ -104,10 +104,10 @@ fun ChatListScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BorderColor,
-                    unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = CardSurface,
-                    unfocusedContainerColor = CardSurface
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = SaveText,
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface
                 )
             )
         }
@@ -201,8 +201,8 @@ private fun ChatConversationItem(
         Spacer(Modifier.width(8.dp))
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (hasUnread) {
-                Surface(color = YellowBadge, shape = androidx.compose.foundation.shape.CircleShape) {
-                    Text(if (unreadCount > 99) "99+" else unreadCount.toString(), color = YellowText,
+                Surface(color = BrandAccent, shape = androidx.compose.foundation.shape.CircleShape) {
+                    Text(if (unreadCount > 99) "99+" else unreadCount.toString(), color = OnBrandAccent,
                         fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                 }
             }

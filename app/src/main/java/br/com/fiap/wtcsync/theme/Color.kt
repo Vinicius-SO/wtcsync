@@ -24,6 +24,12 @@ data class WtcPalette(
     val BorderColor: Color = Color(0xFF807660),
     val TextPrimary: Color = Color(0xFF1C1B1B),
     val TextSecondary: Color = Color(0xFF4E4633),
+    // Brand actions stay vivid; containers and chat bubbles have their own semantics.
+    val BrandAccent: Color = Color(0xFFF5C518),
+    val OnBrandAccent: Color = Color(0xFF1C1B1B),
+    val InputSurface: Color = Color(0xFFFFFFFF),
+    val MessageSentBg: Color = Color(0xFFF5C518),
+    val MessageSentText: Color = Color(0xFF594500),
     val YellowBadge: Color = Color(0xFFF5C518),
     val YellowText: Color = Color(0xFF594500),
     val FooterBg: Color = Color(0xFFE2DFDE),
@@ -65,52 +71,55 @@ data class WtcPalette(
 
 val LightPalette = WtcPalette()
 val DarkPalette = WtcPalette(
-    BackgroundCream = Color(0xFF141413),
-    HeaderBg = Color(0xFF1E1E1B),
-    CardSurface = Color(0xFF252521),
+    InputSurface = Color(0xFF2D2D28),
+    MessageSentBg = Color(0xFF39321C),
+    MessageSentText = Color(0xFFF4F0E7),
+    BackgroundCream = Color(0xFF171715),
+    HeaderBg = Color(0xFF232320),
+    CardSurface = Color(0xFF232320),
     TextPrimary = Color(0xFFF4F0E7),
-    TextSecondary = Color(0xFFD0C9B9),
-    BorderColor = Color(0xFFA69B81),
-    NavBarBackground = Color(0xFF1E1E1B),
-    NavBarBorder = Color(0xFF716A59),
-    NavBarInactive = Color(0xFFD0C9B9),
-    NavBarActive = Color(0xFFFFE8A0),
-    NavBarActiveFill = Color(0xFF5C4900),
-    YellowBadge = Color(0xFF5C4900),
-    YellowText = Color(0xFFFFE8A0),
-    FooterBg = Color(0xFF292924),
-    FooterBorder = Color(0xFF655F50),
-    FooterText = Color(0xFFD0C9B9),
-    InfoIconColor = Color(0xFFFFDC72),
-    ListBorderLight = Color(0xFF5C584B),
-    ListTabActive = Color(0xFFFFDC72),
-    ListTabInactive = Color(0xFFD0C9B9),
-    ListDivider = Color(0xFF3F3D35),
+    TextSecondary = Color(0xFFB8B3A7),
+    BorderColor = Color(0xFF858578),
+    NavBarBackground = Color(0xFF232320),
+    NavBarBorder = Color(0xFF44443C),
+    NavBarInactive = Color(0xFFB8B3A7),
+    NavBarActive = Color(0xFFF5C518),
+    NavBarActiveFill = Color(0xFF39321C),
+    YellowBadge = Color(0xFF39321C),
+    YellowText = Color(0xFFF7D978),
+    FooterBg = Color(0xFF232320),
+    FooterBorder = Color(0xFF44443C),
+    FooterText = Color(0xFFB8B3A7),
+    InfoIconColor = Color(0xFFF5C518),
+    ListBorderLight = Color(0xFF44443C),
+    ListTabActive = Color(0xFFF5C518),
+    ListTabInactive = Color(0xFFB8B3A7),
+    ListDivider = Color(0xFF383832),
     ListSentBg = Color(0xFF173D28),
     ListSentText = Color(0xFFB1E6BF),
     ListScheduledBg = Color(0xFF183851),
     ListScheduledText = Color(0xFFB8DDFF),
     ListDraftBg = Color(0xFF493B18),
     ListDraftText = Color(0xFFFFDE8A),
-    ListStatsIcon = Color(0xFFFFDC72),
-    ListScheduleIcon = Color(0xFFD0C9B9),
-    ListScheduleBg = Color(0xFF30302A),
+    ListStatsIcon = Color(0xFFF5C518),
+    ListScheduleIcon = Color(0xFFB8B3A7),
+    ListScheduleBg = Color(0xFF2D2D28),
     ListPromoBg = Color(0xFF0D0D0C),
-    PlaceholderText = Color(0xFFBDB7A9),
-    ActionCardBg = Color(0xFF282824),
+    PlaceholderText = Color(0xFFB8B3A7),
+    ActionCardBg = Color(0xFF2D2D28),
     AgendarBg = Color(0xFF123C48),
     AgendarText = Color(0xFFAAE8FA),
-    SaveText = Color(0xFFFFDC72),
-    CardGrayBg = Color(0xFF30302A),
+    SaveText = Color(0xFFF5C518),
+    CardGrayBg = Color(0xFF2D2D28),
     ErrorBg = Color(0xFF4D2026),
     ErrorText = Color(0xFFFFB4BD),
     SuccessBg = Color(0xFF173D28),
     SuccessText = Color(0xFFB1E6BF),
     InfoBg = Color(0xFF183851),
     InfoText = Color(0xFFB8DDFF),
-    SkeletonBase = Color(0xFF30302A),
-    SkeletonHighlight = Color(0xFF43433A),
-    InputDisabled = Color(0xFF383831),
+    SkeletonBase = Color(0xFF2D2D28),
+    SkeletonHighlight = Color(0xFF3B3B34),
+    InputDisabled = Color(0xFF32322D),
 )
 val LocalWtcPalette = staticCompositionLocalOf { LightPalette }
 
@@ -227,3 +236,18 @@ fun Modifier.themedDrawBehind(block: DrawScope.(WtcPalette) -> Unit): Modifier {
     val palette = LocalWtcPalette.current
     return drawBehind { block(palette) }
 }
+
+val BrandAccent: Color
+    @Composable @ReadOnlyComposable get() = LocalWtcPalette.current.BrandAccent
+
+val OnBrandAccent: Color
+    @Composable @ReadOnlyComposable get() = LocalWtcPalette.current.OnBrandAccent
+
+val InputSurface: Color
+    @Composable @ReadOnlyComposable get() = LocalWtcPalette.current.InputSurface
+
+val MessageSentBg: Color
+    @Composable @ReadOnlyComposable get() = LocalWtcPalette.current.MessageSentBg
+
+val MessageSentText: Color
+    @Composable @ReadOnlyComposable get() = LocalWtcPalette.current.MessageSentText

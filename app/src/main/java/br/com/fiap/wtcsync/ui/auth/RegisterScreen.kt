@@ -129,8 +129,10 @@ fun RegisterScreen(
                 enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BorderColor,
-                    unfocusedBorderColor = BorderColor,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = SaveText,
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -157,8 +159,10 @@ fun RegisterScreen(
                 enabled = userState !is Resource.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BorderColor,
-                    unfocusedBorderColor = BorderColor,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = SaveText,
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -191,8 +195,10 @@ fun RegisterScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BorderColor,
-                    unfocusedBorderColor = BorderColor,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = SaveText,
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),
@@ -225,8 +231,10 @@ fun RegisterScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BorderColor,
-                    unfocusedBorderColor = BorderColor,
+                    focusedBorderColor = SaveText,
+                    unfocusedBorderColor = SaveText,
+                    focusedContainerColor = InputSurface,
+                    unfocusedContainerColor = InputSurface,
                     focusedTextColor = BlackPrimary,
                     unfocusedTextColor = BlackPrimary
                 ),

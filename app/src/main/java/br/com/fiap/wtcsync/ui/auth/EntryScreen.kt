@@ -27,7 +27,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 
-val YellowPrimary = Color(0xFFFFCC00)
+val YellowPrimary: Color
+    @Composable get() = BrandAccent
 val BlackPrimary: Color
     @Composable get() = TextPrimary
 val LightBackground: Color

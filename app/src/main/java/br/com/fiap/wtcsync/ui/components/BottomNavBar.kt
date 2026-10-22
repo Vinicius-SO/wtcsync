@@ -121,9 +121,9 @@ private fun BottomNavItem(
         interactionSource = interaction,
         shape = shape,
         color = containerColor,
-        tonalElevation = if (isSelected) 2.dp else 0.dp,
-        shadowElevation = if (isSelected) 2.dp else 0.dp,
-        border = if (isSelected) BorderStroke(1.dp, NavBarBorder) else null
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = null
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),

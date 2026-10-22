@@ -38,12 +38,12 @@ fun WtcButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val foreground = when (kind) {
-        WtcButtonKind.Primary -> YellowText
+        WtcButtonKind.Primary -> OnBrandAccent
         WtcButtonKind.DangerText -> ErrorText
         else -> TextPrimary
     }
     val buttonColors = ButtonDefaults.buttonColors(
-        containerColor = if (kind == WtcButtonKind.Primary) YellowBadge else androidx.compose.ui.graphics.Color.Transparent,
+        containerColor = if (kind == WtcButtonKind.Primary) BrandAccent else androidx.compose.ui.graphics.Color.Transparent,
         contentColor = foreground,
         disabledContainerColor = CardGrayBg,
         disabledContentColor = TextSecondary
@@ -112,7 +112,7 @@ fun WtcScreenHeader(
                 Spacer(Modifier.height(4.dp))
             }
             HorizontalDivider(color = ListBorderLight)
-            Box(Modifier.padding(start = 16.dp).width(40.dp).height(3.dp).background(YellowBadge, MaterialTheme.shapes.small))
+            Box(Modifier.padding(start = 16.dp).width(40.dp).height(3.dp).background(BrandAccent, MaterialTheme.shapes.small))
         }
     }
 }

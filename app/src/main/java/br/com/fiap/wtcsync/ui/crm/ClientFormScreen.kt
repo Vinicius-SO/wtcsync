@@ -137,8 +137,8 @@ fun ClientFormScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Surface(
-                border = BorderStroke(1.5.dp, ListBorderLight),
-                shape = RoundedCornerShape(16.dp),
+                border = WtcBorders.subtle(),
+                shape = WtcShapes.medium,
                 color = CardSurface
             ) {
                 Column(
@@ -151,7 +151,7 @@ fun ClientFormScreen(
                             modifier = Modifier.size(80.dp),
                             shape = CircleShape,
                             color = InputDisabled,
-                            border = BorderStroke(2.dp, ListBorderLight)
+                            border = WtcBorders.subtle()
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                 Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(16.dp), tint = TextSecondary)
@@ -161,7 +161,7 @@ fun ClientFormScreen(
                             modifier = Modifier.size(28.dp).align(Alignment.BottomEnd),
                             shape = CircleShape,
                             color = YellowBadge,
-                            border = BorderStroke(2.dp, BorderColor)
+                            border = WtcBorders.control()
                         ) {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                 Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.padding(5.dp), tint = YellowText)

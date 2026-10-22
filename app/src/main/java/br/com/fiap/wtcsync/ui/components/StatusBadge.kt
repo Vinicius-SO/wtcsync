@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.components
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -23,7 +24,7 @@ fun StatusBadge(status: String?) {
         "prospect" -> Triple(ListScheduledBg, ListScheduledText, "● PROSPECT")
         else       -> Triple(ListDraftBg, ListDraftText, "● INACTIVE")
     }
-    Surface(shape = RoundedCornerShape(50), color = bg) {
+    Surface(shape = WtcCorners.Pill, color = bg) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),

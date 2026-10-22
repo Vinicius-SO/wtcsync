@@ -93,6 +93,7 @@ fun LoginScreen(
                 onValueChange = { email = it },
                 placeholder = { Text("JoeDoe@WTC.com", color = TextSecondary) }, // Placeholder
                 singleLine = true,
+                shape = WtcShapes.medium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
@@ -116,6 +117,7 @@ fun LoginScreen(
                 onValueChange = { senha = it },
                 placeholder = { Text("**************", color = TextSecondary) }, // Placeholder
                 singleLine = true,
+                shape = WtcShapes.medium,
                 visualTransformation = PasswordVisualTransformation(), // Para ocultar a senha
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),

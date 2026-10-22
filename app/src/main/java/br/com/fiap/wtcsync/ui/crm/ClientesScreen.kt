@@ -109,8 +109,8 @@ fun ClientesScreen(
                     // Search field
                     Surface(
                         color = CardSurface,
-                        border = BorderStroke(2.dp, BorderColor),
-                        shape = RoundedCornerShape(8.dp)
+                        border = WtcBorders.control(),
+                        shape = WtcShapes.medium
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 12.dp),
@@ -155,7 +155,7 @@ fun ClientesScreen(
                     }
                 } else {
                     items(uiState.clients, key = { it.id }) { cliente ->
-                        ClientCard(cliente = cliente, onClick = { onClienteClick(cliente.id) })
+                        ClientCard(cliente = cliente, modifier = wtcItemMotion(), onClick = { onClienteClick(cliente.id) })
                         Spacer(Modifier.height(12.dp))
                     }
                 }
@@ -166,10 +166,10 @@ fun ClientesScreen(
 }
 
 @Composable
-private fun ClientCard(cliente: ClientDto, onClick: () -> Unit) {
-    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+private fun ClientCard(cliente: ClientDto, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    WtcCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            ClientAvatar(name = cliente.name, size = 52.dp, shape = RoundedCornerShape(8.dp))
+            ClientAvatar(name = cliente.name, size = 52.dp, shape = WtcShapes.small)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(

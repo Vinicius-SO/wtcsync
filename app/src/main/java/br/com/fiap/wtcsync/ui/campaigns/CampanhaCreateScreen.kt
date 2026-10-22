@@ -128,9 +128,9 @@ private fun FormField(
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = WtcShapes.medium,
             color = CardSurface,
-            border = BorderStroke(2.dp, BorderColor)
+            border = WtcBorders.subtle()
         ) {
             Box(
                 modifier = Modifier
@@ -168,9 +168,9 @@ private fun SegmentField() {
         ) {
             Surface(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                shape = WtcShapes.medium,
                 color = CardSurface,
-                border = BorderStroke(2.dp, BorderColor)
+                border = WtcBorders.subtle()
             ) {
                 Row(
                     modifier = Modifier
@@ -216,10 +216,10 @@ private fun MediaSection() {
             )
 
             Surface(
-                modifier = Modifier.shadow(2.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier,
+                shape = WtcShapes.medium,
                 color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
+                border = WtcBorders.subtle()
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
@@ -245,9 +245,9 @@ private fun MediaSection() {
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
+            shape = WtcShapes.medium,
             color = CardGrayBg,
-            border = BorderStroke(2.dp, BorderColor)
+            border = WtcBorders.subtle()
         ) {
             Box(
                 modifier = Modifier
@@ -277,9 +277,9 @@ private fun LinkSection() {
         )
 
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = WtcShapes.medium,
             color = CardSurface,
-            border = BorderStroke(2.dp, BorderColor)
+            border = WtcBorders.subtle()
         ) {
             Row(
                 modifier = Modifier
@@ -315,9 +315,9 @@ private fun LinkSection() {
 private fun ActionButtonsSection() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = WtcShapes.medium,
         color = ActionCardBg,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -367,9 +367,9 @@ private fun ActionButtonColumn(
         )
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = WtcShapes.small,
             color = CardSurface,
-            border = BorderStroke(2.dp, BorderColor)
+            border = WtcBorders.subtle()
         ) {
             Box(
                 modifier = Modifier
@@ -388,9 +388,9 @@ private fun ActionButtonColumn(
         }
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = WtcShapes.small,
             color = CardSurface,
-            border = BorderStroke(2.dp, BorderColor)
+            border = WtcBorders.subtle()
         ) {
             Box(
                 modifier = Modifier
@@ -425,7 +425,7 @@ private fun CreateFooter() {
                         color = palette.BorderColor.copy(alpha = 0.6f),
                         start = Offset(0f, 0f),
                         end = Offset(size.width, 0f),
-                        strokeWidth = 2f
+                        strokeWidth = WtcBorders.Width.toPx()
                     )
                 }
                 .padding(horizontal = 16.dp, vertical = 20.dp),
@@ -438,10 +438,10 @@ private fun CreateFooter() {
                 Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .shadow(2.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(12.dp),
+                        ,
+                    shape = WtcShapes.medium,
                     color = CardSurface,
-                    border = BorderStroke(2.dp, BorderColor)
+                    border = WtcBorders.subtle()
                 ) {
                     Box(
                         modifier = Modifier
@@ -461,10 +461,10 @@ private fun CreateFooter() {
                 Surface(
                     modifier = Modifier
                         .weight(1f)
-                        .shadow(2.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor.copy(alpha = 0.4f), spotColor = BorderColor.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(12.dp),
+                        ,
+                    shape = WtcShapes.medium,
                     color = AgendarBg,
-                    border = BorderStroke(2.dp, BorderColor)
+                    border = WtcBorders.subtle()
                 ) {
                     Box(
                         modifier = Modifier
@@ -484,11 +484,10 @@ private fun CreateFooter() {
 
             Surface(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = BorderColor, spotColor = BorderColor),
-                shape = RoundedCornerShape(12.dp),
+                    .fillMaxWidth(),
+                shape = WtcShapes.medium,
                 color = YellowBadge,
-                border = BorderStroke(2.dp, BorderColor)
+                border = WtcBorders.subtle()
             ) {
                 Row(
                     modifier = Modifier

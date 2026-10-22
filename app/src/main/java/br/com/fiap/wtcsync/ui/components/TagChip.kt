@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.components
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +33,7 @@ fun TagChip(label: String, onRemove: (() -> Unit)? = null) {
         "FINANCE" -> ListScheduledBg to ListScheduledText
         else      -> ListBorderLight to TextSecondary
     }
-    Surface(shape = RoundedCornerShape(50), color = bg) {
+    Surface(shape = WtcCorners.Pill, color = bg) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically

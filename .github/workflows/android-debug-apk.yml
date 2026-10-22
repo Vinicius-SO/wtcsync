@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/design-system-motion
       - fix/dark-brand-identity
       - feature/hybrid-design
       - fix/login-speed

@@ -55,7 +55,7 @@ fun ClientProfileScreen() {
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Surface(color = CardSurface, shape = RoundedCornerShape(12.dp), border = BorderStroke(1.dp, BorderColor)) {
+                Surface(color = CardSurface, shape = WtcShapes.medium, border = WtcBorders.subtle()) {
                     Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         ProfileField("Nome", client!!.name)
                         ProfileField("E-mail", client!!.email)

@@ -173,6 +173,7 @@ fun CampaignListScreen(
                 } else {
                     items(state.campaigns, key = { it.id }) { campaign ->
                         CampaignCard(
+                            modifier = wtcItemMotion(),
                             campaign = campaign,
                             onClick = { onCampaignClick(campaign.id) },
                             onDeleteClick = { campaignToDelete = campaign.id }
@@ -224,9 +225,9 @@ private fun SearchBar(
     Box(modifier = Modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(0.dp),
+            shape = WtcShapes.medium,
             color = CardSurface,
-            border = BorderStroke(2.dp, ListBorderLight)
+            border = WtcBorders.control()
         ) {
             Box(
                 modifier = Modifier
@@ -312,13 +313,13 @@ private fun FilterTabs(
                     color = palette.ListBorderLight,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
-                    strokeWidth = 2f
+                    strokeWidth = WtcBorders.Width.toPx()
                 )
                 drawLine(
                     color = palette.ListTabActive,
                     start = Offset(indicatorOffset, size.height),
                     end = Offset(indicatorOffset + indicatorWidth, size.height),
-                    strokeWidth = 4f
+                    strokeWidth = WtcBorders.FocusWidth.toPx()
                 )
             }
     ) {
@@ -365,7 +366,8 @@ private fun FilterTab(
 private fun CampaignCard(
     campaign: Campaign,
     onClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val statusLabel = when (campaign.status.lowercase()) {
         "draft" -> "RASCUNHO"
@@ -380,7 +382,7 @@ private fun CampaignCard(
     }
     var showMenu by remember { mutableStateOf(false) }
 
-    WtcCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    WtcCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -394,7 +396,7 @@ private fun CampaignCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(0.dp),
+                        shape = WtcShapes.medium,
                         color = statusBg
                     ) {
                         Text(
@@ -473,7 +475,7 @@ private fun StatsRow(
                     color = palette.ListDivider,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
-                    strokeWidth = 2f
+                    strokeWidth = WtcBorders.Width.toPx()
                 )
             }
             .padding(top = 12.dp),
@@ -519,8 +521,9 @@ private fun SkeletonCard() {
         SkeletonHighlight,
         SkeletonBase
     )
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
+    val animatedOffset = if (LocalReduceMotion.current) 0f else {
+        val transition = rememberInfiniteTransition(label = "shimmer")
+    val value by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
         animationSpec = InfiniteRepeatableSpec(
@@ -529,6 +532,9 @@ private fun SkeletonCard() {
         ),
         label = "translate"
     )
+    value
+    }
+    val translateAnim = if (LocalReduceMotion.current) 0f else animatedOffset
     val brush = Brush.linearGradient(
         colors = shimmerColors,
         start = Offset(translateAnim - 200f, 0f),
@@ -536,10 +542,10 @@ private fun SkeletonCard() {
     )
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(0.dp), ambientColor = BorderColor, spotColor = BorderColor),
+            .fillMaxWidth(),
         color = CardSurface,
-        border = BorderStroke(2.dp, ListBorderLight)
+        border = WtcBorders.subtle(),
+        shape = WtcShapes.medium
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -570,7 +576,7 @@ private fun ShimmerRect(brush: Brush, width: Int, height: Int) {
     Box(
         modifier = Modifier
             .size(width.dp, height.dp)
-            .background(brush, RoundedCornerShape(2.dp))
+            .background(brush, WtcShapes.extraSmall)
     )
 }
 

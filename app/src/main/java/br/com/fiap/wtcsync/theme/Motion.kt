@@ -5,6 +5,14 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.ui.platform.LocalContext
 
 // Tokens de duração e easing — curtos, sem bounce, nada acima de 350ms.
@@ -26,10 +34,16 @@ val LocalReduceMotion = compositionLocalOf { false }
 @Composable
 fun rememberReduceMotion(): Boolean {
     val context = LocalContext.current
-    val scale = Settings.Global.getFloat(
-        context.contentResolver,
-        Settings.Global.ANIMATOR_DURATION_SCALE,
-        1f
-    )
-    return scale == 0f
+    val resolver = context.contentResolver
+    fun disabled() = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    var reduce by remember(resolver) { mutableStateOf(disabled()) }
+    DisposableEffect(resolver) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) { reduce = disabled() }
+        }
+        resolver.registerContentObserver(Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE), false, observer)
+        reduce = disabled()
+        onDispose { resolver.unregisterContentObserver(observer) }
+    }
+    return reduce
 }

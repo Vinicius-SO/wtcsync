@@ -1,5 +1,6 @@
 package br.com.fiap.wtcsync.ui.components
 
+import br.com.fiap.wtcsync.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -26,7 +27,7 @@ fun WtcCard(
         interactionSource = interaction,
         shape = MaterialTheme.shapes.medium,
         color = CardSurface,
-        border = BorderStroke(1.dp, ListBorderLight),
+        border = WtcBorders.subtle(),
         shadowElevation = 1.dp
     ) { Box { content() } }
 }

@@ -292,9 +292,9 @@ private fun ActionButtonsSection(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = WtcShapes.medium,
         color = ActionCardBg,
-        border = BorderStroke(2.dp, BorderColor)
+        border = WtcBorders.subtle()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
